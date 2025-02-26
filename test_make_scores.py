@@ -228,7 +228,7 @@ if __name__ == "__main__":
             )#, count_files)
 
             #Good_jets = labels
-            labels = labels == 1
+            labels = labels==config_signal[signal]["signal_jet_truth_label"] #1
             labels = 1*labels
             
             if count_files==0:

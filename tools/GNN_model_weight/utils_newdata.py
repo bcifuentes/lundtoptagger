@@ -68,6 +68,83 @@ def GetPtWeight_2( dsid , pt, SF):
     lenght_sig = len(flatweights_sig[0])
     lenght_bkg = len(flatweights_bg[0])
     #print("lenght_sig:", lenght_sig, "  lenght_bkg:", lenght_bkg)
+
+    #print("[0]",flatweights_bg[0])
+    #print("[1]",flatweights_bg[1])
+    total_jets_qcd = np.sum(flatweights_bg[0])
+    total_jets_signal = np.sum(flatweights_sig[0])
+    
+    #print("total_jets_qcd", total_jets_qcd)
+    #print("total_jets_signal", total_jets_signal)
+    print("proportion QCD/SIGNAL", total_jets_qcd / total_jets_signal)
+    #ERRORRR
+    QCD_SIGNAL_proportion = total_jets_qcd / total_jets_signal
+    sig_bkg_proportion = 5 #5  ## if is taked 5% of signal and 1% of qcd for training then sig_bkg_proportion=5
+    scale_factor = (lenght_bkg/lenght_sig) / sig_bkg_proportion #1
+    scale_factor = scale_factor * QCD_SIGNAL_proportion
+    #print("scale_factor", scale_factor)
+    print(scale_factor)
+    
+    weight_out = []
+    Inv_hist_bg = []#flatweights_bg[0]
+    Inv_hist_sig = []#flatweights_sig[0]
+    ## it's time to calcuate the 1/hist
+    for i in range (0,lenght_bkg):
+        if flatweights_bg[0][i]==0:
+            Inv_hist_bg.append(0)
+            continue
+        else:
+            Inv_hist_bg.append(np.sum(flatweights_bg[0]) / (lenght_bkg * flatweights_bg[0][i]))
+            
+    for i in range (0,lenght_sig):
+        if flatweights_sig[0][i]==0:
+            Inv_hist_sig.append(0)
+            continue
+        else:
+            Inv_hist_sig.append(np.sum(flatweights_sig[0]) / (lenght_sig * flatweights_sig[0][i]))
+        
+    for i in range ( 0,len(dsid) ):
+        pt_bin = int( ((pt[i]-100)/3000)*lenght_sig )
+        if pt_bin>=lenght_sig : # ==
+            pt_bin = lenght_sig-1
+        if dsid[i] ==10:#< 370000 :
+            #print("pt[i] ->", pt[i])
+            #print("bin_pt->", pt_bin)
+            weight_out.append( (Inv_hist_bg[pt_bin])*1  )
+        if dsid[i] !=10: ##events with other values than 1 and 10 must be removed in data creation
+            weight_out.append( (Inv_hist_sig[pt_bin]*scale_factor)*1 ) #*10**2 )
+    return np.array(weight_out)
+
+def GetPtWeight_all_MC( dsid , pt, SF, Pythia_or_All):
+    ## PT histograms of all qcd and top jets in dataset
+    filename1 = config[signal]["pt_hist_file_bkg"]
+    filename2 = config[signal]["pt_hist_file_signal"]
+    if Pythia_or_All == 2:
+        filename_Phythia = ""
+        filename_Sherpa_L = ""
+        filename_Sherpa_C = ""
+        filename_Herwig_d = ""
+        
+    ### this method only works if each root files doesn't contain more than one MC.
+    if dsid[0] >= 364700 and dsid[0] <= 364712:
+        filename1 = filename_Phythia
+    elif dsid[0] >= 364686 and dsid[0] <= 364694 :
+        filename1 = filename_Sherpa_L
+    elif dsid[0] >= 364677 and dsid[0] <= 364685 :
+        filename1 = filename_Sherpa_C
+    elif dsid[0] >= 364902 and dsid[0] <= 364909 :
+        filename1 = filename_Herwig_d
+    
+    #filename_another = 
+    weights_file1 = uproot.open(filename1)
+    flatweights_bg = weights_file1["pt"].to_numpy()
+    weights_file2 = uproot.open(filename2)
+    flatweights_sig = weights_file2["pt"].to_numpy()
+    
+    lenght_sig = len(flatweights_sig[0])
+    lenght_bkg = len(flatweights_bg[0])
+
+    #print("lenght_sig:", lenght_sig, "  lenght_bkg:", lenght_bkg)
     
     sig_bkg_proportion = 5  ## if is taked 5% of signal and 1% of qcd for training then sig_bkg_proportion=5
     scale_factor = (lenght_bkg/lenght_sig) / sig_bkg_proportion #1
@@ -161,8 +238,17 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file(graphs, z, k, d, edge1, e
         if label[i] == signal_jet_truth_label:
             label_out = 1
 
-        if jet_pts[i] > 3200: continue
-        if jet_pts[i] < 350: continue # . ./run.txt
+        if signal_jet_truth_label == 2 : # W tagging selection for all jets
+            if jet_pts[i] < 200: continue 
+            if jet_pts[i] > 3100: continue # not really necessary, in testing jets with pt>3k are not included
+            if jet_ms[i] < 40: continue
+            if jet_ms[i] > 300: continue # I prefer avoid great masses in order to obtain stability in ANN
+
+        if signal_jet_truth_label == 1 : # Top tagging selection for all jets
+            if jet_pts[i] < 350: continue 
+            if jet_pts[i] > 3100: continue # not really necessary, in testing jets with pt>3k are not included
+            if jet_ms[i] > 40: continue
+
         
         z_out = ak.to_numpy(z[i])
         k_out = ak.to_numpy(k[i])
@@ -532,7 +618,7 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file(graphs, z, k, d, edge1, e
                             Ntrk=torch.tensor(Ntrk, dtype=torch.float).detach(),
                            weights= torch.tensor(weight[i], dtype=torch.float).detach(),
                            #graph_size = torch.tensor(graph_size, dtype=torch.float).detach(),
-                           #pt= float(jet_pts[i]) ,#torch.tensor(jet_pts[i] , dtype=torch.float).detach(),
+                           pt= float(jet_pts[i]) ,#torch.tensor(jet_pts[i] , dtype=torch.float).detach(),
                            mass= float(jet_ms[i]) ,#torch.tensor(jet_ms[i], dtype=torch.float).detach(),
                            y= float(label_out) ))#torch.tensor(label_out, dtype=torch.float).detach() ))
         '''
@@ -941,9 +1027,10 @@ def train_clas(loader, model, device, optimizer1, optimizer2, optimizer3, epoch)
     loss_all = 0
     batch_counter = 0
     for data in loader:
+        batch_counter+=1
+        #print("batch_counter: ",batch_counter, end="\r")
         if len(data)<1024:
             continue
-        batch_counter+=1
         data = data.to(device)
         optimizer1.zero_grad()
         optimizer2.zero_grad()
@@ -963,10 +1050,10 @@ def train_clas(loader, model, device, optimizer1, optimizer2, optimizer3, epoch)
             optimizer2.step()
         else:
             optimizer1.step()
-
+    del data
+    data = []
+    torch.cuda.empty_cache()
     return loss_all / len(loader.dataset)
-
-
 
 
 @torch.no_grad()
@@ -982,16 +1069,24 @@ def get_accuracy(loader, model, device):
     return correct / len(loader.dataset)
 
 @torch.no_grad()
-def my_test (loader, model, device):
+def my_test(loader, model, device):
     model.eval()
+    #print("init my_test()")
+    #time.sleep(600)
     loss_all = 0
+    batch_counter = 0
     for data in loader:
+        batch_counter+=1
+        #print("batch_counter: ",batch_counter, end="\r")
         data = data.to(device)
         output = model(data)
         new_y = torch.reshape(data.y, (int(list(data.y.shape)[0]),1))
         new_w = torch.reshape(data.weights, (int(list(data.weights.shape)[0]),1))
         loss = F.binary_cross_entropy(output, new_y, weight=new_w)
         loss_all += data.num_graphs * loss.item()
+    del data
+    data = []
+    torch.cuda.empty_cache()
     return loss_all/len(loader.dataset)
 
 @torch.no_grad()
@@ -1007,3 +1102,241 @@ def get_scores(loader, model, device):
         total_output = np.append(total_output, pred.cpu().detach().numpy(), axis=0)
 
     return total_output[1:]
+
+#### include adversarial and combined training
+def train_adversary_2(loader, clsf, adv, optimizer, device, loss_parameter, loss_weights):
+    clsf.eval()
+    adv.train()
+    loss_adv = 0
+    loss_clsf = 0
+    loss_all = 0
+    batch_counter = 0
+    
+    for data in loader:
+        clsf.eval()
+        if len(data)<512:
+            continue
+        batch_counter+=1
+        cl_data = data.to(device)
+        #adv_data = data[1].to(device)
+        new_y = torch.reshape(cl_data.y, (int(list(cl_data.y.shape)[0]),1))
+        new_w = torch.reshape(cl_data.weights, (int(list(cl_data.weights.shape)[0]),1)) 
+        new_pt = torch.reshape(cl_data.pt, (int(list(cl_data.pt.shape)[0]),1) )
+        new_mass = torch.reshape(cl_data.mass, (int(list(cl_data.mass.shape)[0]),1))
+        new_pt = torch.log(new_pt)
+
+        #print(new_pt[:2], " new_pt  " , torch.log(new_pt[:2]) )
+        mask_bkg = new_y.lt(0.5)
+        optimizer.zero_grad()
+        cl_out = clsf(cl_data)
+        loss1 = F.binary_cross_entropy(cl_out, new_y, weight = new_w)
+        
+        #adv_inp = torch.cat((torch.reshape(cl_out[mask_bkg], (len(cl_out[mask_bkg]),1) ), torch.reshape(cl_data.pt[mask_bkg], (int(list(cl_data.pt[mask_bkg].shape)[0]),1) ) ) , 1)
+        
+        adv_inp = torch.cat( (torch.reshape(cl_out[mask_bkg], (len(cl_out[mask_bkg]),1)) , torch.reshape(new_pt[mask_bkg], (len(new_pt[mask_bkg]),1) ))  ,1)
+
+        #adv_inp = torch.cat( (torch.reshape(cl_out[mask_bkg], (len(cl_out[mask_bkg]),1)) , torch.reshape(cl_data.pt[mask_bkg], (len(cl_data.pt[mask_bkg]),1) )   )  ,1)
+
+        pi, sigma, mu = adv(adv_inp)
+        
+        #print("batch_counter",batch_counter)
+        '''
+        print("---------------------------------------")
+        print( torch.reshape(new_pt[mask_bkg], (len(new_pt[mask_bkg]),1) )   )
+        print("---------------------------------------")
+        print("mu size->", mu.size(), "   pi size->",pi.size() ,"   sigma size->", sigma.size()  )
+        print(mu[0])
+        print("---------------------------------------")        
+        print(pi[0])
+        print("---------------------------------------")
+        print(sigma[0])
+        print("---------------------------------------")
+        #'''
+        #loss2 = loss_weights[1] * mdn_loss(pi, sigma, mu, torch.reshape(new_mass[mask_bkg], (len(new_mass[mask_bkg]),1) ) , new_w[mask_bkg])
+        #loss2 = loss_weights[1] * loss_parameter * mdn_loss_new(pi, sigma, mu, torch.reshape(new_mass[mask_bkg], (len(new_mass[mask_bkg]),1) ) , new_w[mask_bkg])
+        #loss2 = loss_weights[1] * mdn_loss_new(pi, sigma, mu, torch.reshape(new_mass[mask_bkg], (len(new_mass[mask_bkg]),1) ) , new_w[mask_bkg])
+        loss2 = loss_weights[1] * mdn_loss_new(device, pi, sigma, mu, torch.reshape(new_mass[mask_bkg], (len(new_mass[mask_bkg]),1) ) , new_w[mask_bkg])
+
+        #print("loss_adv->",loss2.item())
+        
+        loss2.backward()
+        loss = loss_weights[1] * loss1 + loss_parameter*loss2
+        
+        loss_clsf += cl_data.num_graphs * loss1.item()
+        loss_adv += cl_data.num_graphs * loss2.item()
+        loss_all += cl_data.num_graphs * loss.item()
+        optimizer.step()
+        
+    return loss_adv / len(loader.dataset), loss_clsf / len(loader.dataset), loss_all / len(loader.dataset)
+
+
+def test_combined(loader, clsf, adv, device, loss_parameter, loss_weights ):
+    clsf.eval()
+    adv.eval()
+    loss_adv = 0
+    loss_clsf = 0
+    loss_all = 0
+    for data in loader:
+        if len(data)<512:
+            continue
+        cl_data = data.to(device)
+        #adv_data = data[1].to(device)
+        new_y = torch.reshape(cl_data.y, (int(list(cl_data.y.shape)[0]),1))
+        mask_bkg = new_y.lt(0.5)
+        cl_out = clsf(cl_data)
+        new_w = torch.reshape(cl_data.weights, (int(list(cl_data.weights.shape)[0]),1))
+
+        new_pt = torch.reshape(cl_data.pt, (int(list(cl_data.pt.shape)[0]),1) )
+        new_mass = torch.reshape(cl_data.mass, (int(list(cl_data.mass.shape)[0]),1))
+        new_pt = torch.log(new_pt)
+
+        cl_out = cl_out.clamp(0, 1)
+        cl_out[cl_out!=cl_out] = 0
+        
+        loss1 = F.binary_cross_entropy(cl_out, new_y, weight = new_w)
+
+        #adv_inp = torch.cat((torch.reshape(cl_out[mask_bkg], (len(cl_out[mask_bkg]), 1)), torch.reshape(cl_data.pt[mask_bkg], (len(cl_data.pt[mask_bkg]), 1))), 1)
+        adv_inp = torch.cat( (torch.reshape(cl_out[mask_bkg], (len(cl_out[mask_bkg]),1)) , torch.reshape(new_pt[mask_bkg], (len(new_pt[mask_bkg]),1) ))  ,1)
+        
+        pi, sigma, mu = adv(adv_inp)
+
+        loss2 = mdn_loss_new(device, pi, sigma, mu, torch.reshape(new_mass[mask_bkg], (len(new_mass[mask_bkg]),1) ) , new_w[mask_bkg])
+        
+        loss = loss_weights[0] * loss1 + loss_weights[1] * loss_parameter*loss2
+        loss_clsf += loss_weights[0] * cl_data.num_graphs * loss1.item()
+        loss_adv += loss_weights[1] * cl_data.num_graphs * loss2.item()
+        loss_all += cl_data.num_graphs * loss.item()
+        #print("loss_adv->",loss_adv)
+    return loss_adv / len(loader.dataset), loss_clsf / len(loader.dataset), loss_all / len(loader.dataset)
+
+
+
+def train_combined_2(loader, clsf, adv, optimizer_cl, optimizer_adv, device, loss_parameter, loss_weights):
+    clsf.train()
+    adv.train()
+    loss_adv = 0
+    loss_clsf = 0
+    loss_all = 0
+    batch_counter = 0
+    jsd_total = 0
+
+    for data in loader:
+        batch_counter+=1
+        cl_data = data.to(device)
+        #adv_data = data[1].to(device)
+        new_y = torch.reshape(cl_data.y, (int(list(cl_data.y.shape)[0]),1))
+        new_w = torch.reshape(cl_data.weights, (int(list(cl_data.weights.shape)[0]),1))
+
+        new_pt = torch.reshape(cl_data.pt, (int(list(cl_data.pt.shape)[0]),1) )
+        new_mass = torch.reshape(cl_data.mass, (int(list(cl_data.mass.shape)[0]),1))
+        new_pt = torch.log(new_pt)
+        
+        mask_bkg = new_y.lt(0.5)
+        optimizer_cl.zero_grad()
+        optimizer_adv.zero_grad()
+        cl_out = clsf(cl_data)
+
+        cl_out = cl_out.clamp(0, 1)
+        cl_out[cl_out!=cl_out] = 0
+
+        #adv_inp = torch.cat((torch.reshape(cl_out[mask_bkg], (len(cl_out[mask_bkg]), 1)), torch.reshape(adv_data.x[mask_bkg], (len(adv_data.x[mask_bkg]), 1))), 1)
+        adv_inp = torch.cat( (torch.reshape(cl_out[mask_bkg], (len(cl_out[mask_bkg]),1)) , torch.reshape(new_pt[mask_bkg], (len(new_pt[mask_bkg]),1) ))  ,1)
+        pi, sigma, mu = adv(adv_inp)
+        
+        #print("pi[:2]---------------------------------------")
+        #print(pi[:2])
+        '''
+        print("---------------------------------------")
+        #print( torch.reshape(new_mass[mask_bkg], (len(new_pt[mask_bkg]),1) )   )
+        print("---------------------------------------")
+        print("mu size->", mu.size(), "   pi size->",pi.size() ,"   sigma size->", sigma.size()  )
+        print("mu---------------------------------------")
+        print(mu[:2])
+        print("pi---------------------------------------")
+        print(pi[:2])
+        print("sigma---------------------------------------")
+        print(sigma[:2])
+        print("---------------------------------------")
+        '''
+        #print(len(loader.dataset))
+        
+        loss1 = F.binary_cross_entropy(cl_out, new_y, weight = new_w)
+        #loss2 = mdn_loss(pi, sigma, mu, torch.reshape(adv_data.y[mask_bkg], (len(adv_data.y[mask_bkg]), 1)),new_w[mask_bkg])
+        #loss2 = mdn_loss_new(pi, sigma, mu, torch.reshape(new_mass[mask_bkg], (len(new_mass[mask_bkg]),1) ) , new_w[mask_bkg])
+        loss2 = mdn_loss_new(device, pi, sigma, mu, torch.reshape(new_mass[mask_bkg], (len(new_mass[mask_bkg]),1) ) , new_w[mask_bkg])
+        
+        loss = loss_weights[0] * loss1 + loss_weights[1] * loss_parameter*loss2
+        loss.backward()
+    
+        loss_clsf += loss_weights[0] * cl_data.num_graphs * loss1.item()
+        loss_adv += loss_weights[1] * cl_data.num_graphs * loss2.item()
+        loss_all += cl_data.num_graphs * loss.item()
+        optimizer_cl.step() 
+        optimizer_adv.step()
+        
+    return loss_adv / len(loader.dataset), loss_clsf / len(loader.dataset), loss_all / len(loader.dataset)
+
+
+def aux_metrics(loader, clsf, adv, device, MASSBINS):
+    clsf.eval()
+    adv.eval()
+    counter = 0
+    bkg_tagged = 0
+    bkg_total = 0
+    jsd_total = 0
+    nans = 0
+    jsd_counter = 0
+    mass_tagged = np.array([])
+    mass_untagged = np.array([])
+    for data in loader:
+        cl_data = data.to(device)
+        #adv_data = data[1].to(device)
+        new_y = torch.reshape(cl_data.y, (int(list(cl_data.y.shape)[0]),1))
+        #    print ("true labels",new_y)
+        new_mass = torch.reshape(cl_data.mass, (int(list(cl_data.mass.shape)[0]),1))
+        mask_bkg = new_y.lt(0.5)
+        cl_out = clsf(cl_data)
+        mask_tag = cl_out.lt(0.5)
+        mask_untag = cl_out.ge(0.5)
+
+        bkg_tagged+=torch.count_nonzero(mask_untag&mask_bkg)
+        bkg_total+=torch.count_nonzero(mask_bkg)
+
+        p, _ = np.histogram(np.array(new_mass[mask_bkg&mask_tag].cpu()), bins=MASSBINS, density=1.)
+        f, _ = np.histogram(np.array(new_mass[mask_bkg&mask_untag].cpu()), bins=MASSBINS, density=1.)
+
+        jsd = JSD(p,f)
+        if math.isnan(jsd):
+            nans+=1
+        else:
+            jsd_total +=jsd
+            jsd_counter+=1
+  #      print ("jsd",jsd)
+    if bkg_tagged:
+        eff = bkg_total/bkg_tagged
+    else:
+        eff = bkg_total*0
+
+    if jsd_counter:
+        jsd_total = jsd_total/jsd_counter
+    else:
+        jsd_total = 0
+    return float(eff.cpu()), jsd_total
+
+def JSD (P, Q, base=2):
+    """Compute Jensen-Shannon divergence (JSD) of two distribtions.
+    From: [https://stackoverflow.com/a/27432724]
+
+    Arguments:
+        P: First distribution of variable as a numpy array.
+        Q: Second distribution of variable as a numpy array.
+        base: Logarithmic base to use when computing KL-divergence.
+
+    Returns:
+        Jensen-Shannon divergence of `P` and `Q`.
+    """
+    p = P / np.sum(P)
+    q = Q / np.sum(Q)
+    m = 0.5 * (p + q)
+    return 0.5 * (entropy(p, m, base=base) + entropy(q, m, base=base))
+
