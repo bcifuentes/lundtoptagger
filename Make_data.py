@@ -90,7 +90,8 @@ def main():
             
             labels = dsids
 
-            flat_weights = GetPtWeight_2( dsids, jet_pts, 5)
+            #flat_weights = GetPtWeight_2( dsids, jet_pts, 5)
+            flat_weights = GetPtWeight_all_MC( labels, dsids_test,  jet_pts, 5, Pythia_or_All=True)
             kT_selection = config['architecture']['kT_cut']
 
             #dataset = create_train_dataset_fulld_new_Ntrk_pt_weight_file( dataset , all_lund_zs, all_lund_kts, all_lund_drs, parent1, parent2, flat_weights, labels ,N_tracks, jet_pts, jet_ms, kT_selection)

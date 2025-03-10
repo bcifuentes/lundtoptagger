@@ -55,39 +55,85 @@ def GetPtWeight( dsid , pt, SF):
             weight_out.append( (flatweights_sig[0][pt_bin])*1 )
     return np.array(weight_out)
 
-def GetPtWeight_2( dsid , pt, SF):
-
+def GetPtWeight_all_MC( dsid , dsid_input, pt, SF, Pythia_or_All=False ):
     ## PT histograms of all qcd and top jets in dataset
     filename1 = config[signal]["pt_hist_file_bkg"]
     filename2 = config[signal]["pt_hist_file_signal"]
-    weights_file1 = uproot.open(filename1)
-    flatweights_bg = weights_file1["pt"].to_numpy()
+    #weights_file1 = uproot.open(filename1)
+    #flatweights_bg = weights_file1["pt"].to_numpy()
+
+    common_path = "./histos/" 
+    filename_Phythia = common_path+"qcdP8.root" # ./histosqcdP8.root
+    filename_Sherpa_L = common_path+"qcdSL.root"
+    filename_Sherpa_C = common_path+"qcdSC.root"
+    filename_Herwig_d = common_path+"qcdHD.root"
+    #"/data/ravinascos/LundNet/histosR_22_Jean/plotting/ALL_hist/qcdHD.root"#common_path+""
+    if Pythia_or_All:
+        print("dsid",dsid_input[0])
+        ### this method only works if each root files doesn't contain more than one MC.
+        if dsid_input[0] >= 364700 and dsid_input[0] <= 364712:
+            filename1 = filename_Phythia
+            weights_file1 = uproot.open(filename1)
+            flatweights_bg = weights_file1["pt"].to_numpy()
+            print("Sample: Pythia")
+        elif dsid_input[0] >= 364686 and dsid_input[0] <= 364694 :
+            filename1 = filename_Sherpa_L
+            weights_file1 = uproot.open(filename1)
+            flatweights_bg = weights_file1["pt"].to_numpy()
+            print("Sample: Sherpa_L")
+        elif dsid_input[0] >= 364677 and dsid_input[0] <= 364685 :
+            filename1 = filename_Sherpa_C
+            weights_file1 = uproot.open(filename1)
+            flatweights_bg = weights_file1["pt"].to_numpy()
+            print("Sample: Sherpa_C")
+        elif dsid_input[0] >= 364902 and dsid_input[0] <= 364909 :
+            filename1 = filename_Herwig_d
+            weights_file1 = uproot.open(filename1)
+            flatweights_bg = weights_file1["pt"].to_numpy()
+            print("Sample: Herwig_d")
+        #'''
+        elif dsid_input[0] == 801661:
+            filename1 = filename_Phythia
+            weights_file1 = uproot.open(filename1)
+            flatweights_bg = weights_file1["pt"].to_numpy()
+            print("Sample: Signal top")
+        else:
+            print("WARNING!! You are not using proper Pythia, Sherpa or Herwig sample")
+            #weights_file1 = uproot.open(filename1)
+            #flatweights_bg = weights_file1["pt"].to_numpy()
+        #'''
+    else:
+        weights_file1 = uproot.open(filename1)
+        flatweights_bg = weights_file1["pt"].to_numpy()
+
     weights_file2 = uproot.open(filename2)
     flatweights_sig = weights_file2["pt"].to_numpy()
     
     lenght_sig = len(flatweights_sig[0])
     lenght_bkg = len(flatweights_bg[0])
-    #print("lenght_sig:", lenght_sig, "  lenght_bkg:", lenght_bkg)
 
-    #print("[0]",flatweights_bg[0])
-    #print("[1]",flatweights_bg[1])
-    total_jets_qcd = np.sum(flatweights_bg[0])
+    ## keep reweighting using Pythia
+    filename_reweight = filename_Phythia
+    weights_file_reweight = uproot.open(filename_reweight)
+    flatweights_bg_reweight = weights_file_reweight["pt"].to_numpy()
+    total_jets_qcd = np.sum(flatweights_bg_reweight[0])
     total_jets_signal = np.sum(flatweights_sig[0])
-    
-    #print("total_jets_qcd", total_jets_qcd)
-    #print("total_jets_signal", total_jets_signal)
-    print("proportion QCD/SIGNAL", total_jets_qcd / total_jets_signal)
+    print("proportion QCD_pythia/SIGNAL", total_jets_qcd / total_jets_signal)
     #ERRORRR
     QCD_SIGNAL_proportion = total_jets_qcd / total_jets_signal
     sig_bkg_proportion = 5 #5  ## if is taked 5% of signal and 1% of qcd for training then sig_bkg_proportion=5
     scale_factor = (lenght_bkg/lenght_sig) / sig_bkg_proportion #1
     scale_factor = scale_factor * QCD_SIGNAL_proportion
-    #print("scale_factor", scale_factor)
     print(scale_factor)
     
     weight_out = []
     Inv_hist_bg = []#flatweights_bg[0]
     Inv_hist_sig = []#flatweights_sig[0]
+
+    #print(flatweights_bg[0])
+    #print(flatweights_bg[1])
+    #print(flatweights_bg[2])
+    #print("len(flatweights_bg)", len(flatweights_bg))
     ## it's time to calcuate the 1/hist
     for i in range (0,lenght_bkg):
         if flatweights_bg[0][i]==0:
@@ -95,7 +141,6 @@ def GetPtWeight_2( dsid , pt, SF):
             continue
         else:
             Inv_hist_bg.append(np.sum(flatweights_bg[0]) / (lenght_bkg * flatweights_bg[0][i]))
-            
     for i in range (0,lenght_sig):
         if flatweights_sig[0][i]==0:
             Inv_hist_sig.append(0)
@@ -114,73 +159,6 @@ def GetPtWeight_2( dsid , pt, SF):
         if dsid[i] !=10: ##events with other values than 1 and 10 must be removed in data creation
             weight_out.append( (Inv_hist_sig[pt_bin]*scale_factor)*1 ) #*10**2 )
     return np.array(weight_out)
-
-def GetPtWeight_all_MC( dsid , pt, SF, Pythia_or_All):
-    ## PT histograms of all qcd and top jets in dataset
-    filename1 = config[signal]["pt_hist_file_bkg"]
-    filename2 = config[signal]["pt_hist_file_signal"]
-    if Pythia_or_All == 2:
-        filename_Phythia = ""
-        filename_Sherpa_L = ""
-        filename_Sherpa_C = ""
-        filename_Herwig_d = ""
-        
-    ### this method only works if each root files doesn't contain more than one MC.
-    if dsid[0] >= 364700 and dsid[0] <= 364712:
-        filename1 = filename_Phythia
-    elif dsid[0] >= 364686 and dsid[0] <= 364694 :
-        filename1 = filename_Sherpa_L
-    elif dsid[0] >= 364677 and dsid[0] <= 364685 :
-        filename1 = filename_Sherpa_C
-    elif dsid[0] >= 364902 and dsid[0] <= 364909 :
-        filename1 = filename_Herwig_d
-    
-    #filename_another = 
-    weights_file1 = uproot.open(filename1)
-    flatweights_bg = weights_file1["pt"].to_numpy()
-    weights_file2 = uproot.open(filename2)
-    flatweights_sig = weights_file2["pt"].to_numpy()
-    
-    lenght_sig = len(flatweights_sig[0])
-    lenght_bkg = len(flatweights_bg[0])
-
-    #print("lenght_sig:", lenght_sig, "  lenght_bkg:", lenght_bkg)
-    
-    sig_bkg_proportion = 5  ## if is taked 5% of signal and 1% of qcd for training then sig_bkg_proportion=5
-    scale_factor = (lenght_bkg/lenght_sig) / sig_bkg_proportion #1
-    #print("scale_factor", scale_factor)
-    
-    weight_out = []
-    Inv_hist_bg = []#flatweights_bg[0]
-    Inv_hist_sig = []#flatweights_sig[0]
-    
-    ## it's time to calcuate the 1/hist
-    for i in range (0,lenght_bkg):
-        if flatweights_bg[0][i]==0:
-            Inv_hist_bg.append(0)
-            continue
-        else:
-            Inv_hist_bg.append(np.sum(flatweights_bg[0]) / (lenght_bkg * flatweights_bg[0][i]))
-            
-    for i in range (0,lenght_sig):
-        if flatweights_sig[0][i]==0:
-            Inv_hist_sig.append(0)
-            continue
-        else:
-            Inv_hist_sig.append(np.sum(flatweights_sig[0]) / (lenght_sig * flatweights_sig[0][i]))
-        
-    for i in range ( 0,len(dsid) ):
-        pt_bin = int( ((pt[i]-100)/3000)*lenght_sig )
-        if pt_bin>=lenght_sig : # ==
-            pt_bin = lenght_sig-1
-        if dsid[i] ==10:#< 370000 :
-            #print("pt[i] ->", pt[i])
-            #print("bin_pt->", pt_bin)
-            weight_out.append( (Inv_hist_bg[pt_bin])*1  )
-        if dsid[i] !=10: ##events with other values than 1 and 10 must be removed in data creation
-            weight_out.append( (Inv_hist_sig[pt_bin]*scale_factor)*1 ) #*10**2 )
-    return np.array(weight_out)
-
 
 
 def load_yaml(file_name):
