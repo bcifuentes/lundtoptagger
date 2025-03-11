@@ -99,8 +99,8 @@ def GetPtWeight_all_MC( dsid , dsid_input, pt, SF, Pythia_or_All=False ):
             print("Sample: Signal top")
         else:
             print("WARNING!! You are not using proper Pythia, Sherpa or Herwig sample")
-            #weights_file1 = uproot.open(filename1)
-            #flatweights_bg = weights_file1["pt"].to_numpy()
+            weights_file1 = uproot.open(filename1)
+            flatweights_bg = weights_file1["pt"].to_numpy()
         #'''
     else:
         weights_file1 = uproot.open(filename1)
