@@ -1,13 +1,13 @@
 data: 
-  path_to_test_file: "/data/ravinascos/Lund_Plane_2024_graphs/New_Samples/TEST_05qcd_1z/*.root"  
-  path_to_outdir: "/data/ravinascos/LundNet/R_22_Top/TEST_NewData_05qcd_1z/"
+  path_to_test_file: "/data/bcifuentes/outp/2025_splits/OTMC/P8/*.root"  
+  path_to_outdir: "/data/bcifuentes/outp/2025_scores_NC/data"
   weights_file: ""
   scale_factor: 1
   kT_cut: -0.5 ## indeed this is a cut in ln(kT)
 
 test:
-  path_to_combined_ckpt: "/home/ravinascos/LundNet/Jad_git/lundtoptagger/Models/LundNet_R22_ExtraNode_ln_kT_Cut_-0.5_LRJ_NewData_Primarye020_0.10169.pt"
-  output_name: "LundNet_R22_ExtraNode_ln_kT_Cut_-0.5_LRJ_NewDatae020"
+  path_to_combined_ckpt: "/data/bcifuentes/outp/2025_Models_NC/LundNet_R22_ln_kT_Cut_-0.5_LRJ_NewDatae030_0.09398.pt"
+  output_name: "LundNet_R22_ln_kT_Cut_-0.5_LRJ_NewDatae030"
   choose_model: "LundNet"
   learning_rate: 0.001
   batch_size: 2000

@@ -22,7 +22,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 
 from tools.GNN_model_weight.models import *
-from tools.GNN_model_weight.utils_newdata import *
+from tools.GNN_model_weight.utils_newdata_BKU import *
 
 import gc
 print("Libraries loaded!")
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
             #flat_weights = GetPtWeight_2( labels, jet_pts, filename=config['data']['weights_file'], SF=config['data']['scale_factor'])
             
-            flat_weights = GetPtWeight_2( dsids, jet_pts, 5)
+            flat_weights = GetPtWeight_all_MC( labels, dsids_test,  jet_pts, 5, Pythia_or_All=True)
             #dataset = create_train_dataset_fulld_new_Ntrk_pt_weight_file( dataset , all_lund_zs, all_lund_kts, all_lund_drs, parent1, parent2, flat_weights, labels ,N_tracks,jet_pts, jet_ms  )
             
 
@@ -267,8 +267,8 @@ if __name__ == "__main__":
         #model.load_state_dict(torch.load(path_to_combined_ckpt))
         model.load_state_dict(torch.load(path_to_combined_ckpt, map_location=torch.device('cpu')))
         
-        #device = torch.device('cuda') # Usually gpu 4 worked best, it had the most memory available
-        device = torch.device('cpu')
+        device = torch.device('cuda') # Usually gpu 4 worked best, it had the most memory available
+        #device = torch.device('cpu')
 
         
         model.to(device)

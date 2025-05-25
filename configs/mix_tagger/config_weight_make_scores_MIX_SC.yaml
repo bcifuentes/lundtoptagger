@@ -1,0 +1,13 @@
+data: 
+  path_to_test_file: "/data/bcifuentes/outp/top_train05_test_05/SherpaCluster*/*test.root"  
+  path_to_outdir: "/data/bcifuentes/outp/2025_scores_1qcd_5s/top"
+  weights_file: ""
+  scale_factor: 1
+  kT_cut: -500 ## indeed this is a cut in ln(kT)
+
+test:
+  path_to_combined_ckpt: "/data/bcifuentes/outp/2025_MODELS/2025_Models_mixed_1qcd_5top/MIXLundNet_R22_No_ln_kT_Cut_LRJ_NewDatae017_0.48230.pt"
+  output_name: "TESTMIXSHERPAC"
+  choose_model: "LundNet"
+  learning_rate: 0.001
+  batch_size: 2000

@@ -47,7 +47,25 @@ def main():
     #output_path_graphs = "data/graphs_NewDataset_"
 
     dataset = torch.load( path_to_file)
-
+    dsid_count = {}
+    
+    for graph in dataset:
+        dsid = int(graph.y.item())  
+        if dsid in dsid_count:
+            dsid_count[dsid] += 1  
+        else:
+            dsid_count[dsid] = 1  
+            
+    dsid_to_generator = {
+        364700: 'Pythia8',
+        364701: 'SherpaLund',
+        364702: 'SherpaCluster',
+        364703: 'HerwigAngular',
+        364704: 'HerwigDipole',
+    }
+    
+    for dsid, count in dsid_count.items():
+        print(f"{dsid_to_generator.get(dsid, 'Unknown')} (DSID {dsid}): {count} jets")
 
     ## define architecture
     batch_size = config['architecture']['batch_size']

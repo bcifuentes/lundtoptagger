@@ -33,10 +33,10 @@ for variation in range(1):
         #tagger_files["LundNet_class"]       = '/data/ravinascos/LundNet/TopTagger/LundNet_Zprime_weights01_SignalSF01_MyStand_e-7_varlr0.0004_e030_.root'
         
         ## Jad super test
-        tagger_files["LundNet_class"]       = '/data/jmsardain/LJPTagger/Models/TopTagger/Scores/treeTopTagging_LundNetCutOnTruth.root'
-        tagger_files["HerwigAngular"]      = '/data/jmsardain/LJPTagger/Models/TopTagger/Scores/treeHerwigAngular.root'
-        tagger_files["HerwigDipole"]     = '/data/jmsardain/LJPTagger/Models/TopTagger/Scores/treeHerwigDipole.root'
-        tagger_files["SherpaCluster"]     = '/data/jmsardain/LJPTagger/Models/TopTagger/Scores/treeSherpaCluster.root'
+        tagger_files["LundNet_class"]       = '/home/bcifuentes/outp/2025_scores_MIX/MIXLundNet_R22_No_ln_kT_Cut_LRJ_NewDatae030.root'
+        #tagger_files["HerwigAngular"]      = '/data/jmsardain/LJPTagger/Models/TopTagger/Scores/treeHerwigAngular.root'
+        #tagger_files["HerwigDipole"]     = '/data/jmsardain/LJPTagger/Models/TopTagger/Scores/treeHerwigDipole.root'
+        #tagger_files["SherpaCluster"]     = '/data/jmsardain/LJPTagger/Models/TopTagger/Scores/treeSherpaCluster.root'
 
         
 

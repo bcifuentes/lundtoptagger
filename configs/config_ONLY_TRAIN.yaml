@@ -1,12 +1,12 @@
 data:
-  path_to_trainfiles: "/data/ravinascos/LundNet/2024_graphs/graphs_NewDataset_LundNet_R22_No_ln_kT_Cut_LRJ_NewData_Primary"
-  path_to_save: "/home/ravinascos/LundNet/Jad_git/lundtoptagger/Models/"
-  model_name: "LundNet_R22_ExtraNode_No_ln_kT_Cut_LRJ_NewData_Primary"
+  path_to_trainfiles: "/data/bcifuentes/outp/2025_graphs_MIX/graphs_NewDataset_MixLundNet_R22_No_ln_kT_Cut_LRJ_NewData"
+  path_to_save: "/data/bcifuentes/outp/2025_Models_MIX/"
+  model_name: "MixLundNet_R22_No_ln_kT_Cut_LRJ_NewData"
 
 architecture:
   batch_size: 4500 #2600
   test_size: 0.1
-  n_epochs: 35
+  n_epochs: 30
   learning_rate: 0.0004
   choose_model: LundNet ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet
   save_every_epoch: True

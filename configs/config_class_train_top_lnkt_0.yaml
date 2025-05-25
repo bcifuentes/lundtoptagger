@@ -1,7 +1,7 @@
 data:
-  path_to_trainfiles: "/data/ravinascos/Lund_Plane_2024_graphs/New_Samples/Pythia_TRAIN_05QCD_25Z_25W/*.root"
-  path_to_save: "/data/ravinascos/LundNet/2024_graphs/"
-  model_name: "LundNet_R22_ExtraNode_ln_kT_Cut_0.0_LRJ_NewData_Primary"
+  path_to_trainfiles: "/data/bcifuentes/outp/2025_splits_NV/TRAIN_1P8QCD_5P8TOP/*.root"
+  path_to_save: "/data/bcifuentes/outp/2025_graphs/"
+  model_name: "LundNet_R22_1P8QCD_5P8TOP_KtCut0_test0"
 
 architecture:
   batch_size: 1200

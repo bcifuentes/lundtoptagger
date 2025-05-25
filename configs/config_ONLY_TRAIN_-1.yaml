@@ -1,0 +1,16 @@
+data:
+  path_to_trainfiles: "/data/bcifuentes/outp/2025_graphs/graphs_NewDataset_LundNet_R22_1P8QCD_5P8TOP_KtCut-1_Primary"
+  path_to_save: "/data/bcifuentes/outp/2025_MODELS/2025_Models_1qcd_5top_ktcut_-1_Primary/"
+  model_name: "LundNet_R22_ln_kT_Cut_-1_LRJ_NewData_Primary"
+
+architecture:
+  batch_size: 3200
+  test_size: 0.1
+  n_epochs: 30
+  learning_rate: 0.0002
+  choose_model: LundNet ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet
+  save_every_epoch: True
+
+retrain:
+  flag: False
+  path_to_ckpt: "/sps/atlas/k/khandoga/TrainGNN/Models/LundNet_ufob_e012_0.12481.pt"

@@ -46,7 +46,7 @@ def main():
     save_trained_model = True
     intreename = "AnalysisTree"
 
-    print("Training tagger on files", len(files))
+    #print("Training tagger on files", len(files))
     t_start = time.time()
 
     file_number = 0
@@ -56,7 +56,7 @@ def main():
     
     for file in files:
         
-        print("Loading file",file)
+        #print("Loading file",file)
         with uproot.open(file) as infile:
             tree = infile[intreename]
             file_number += 1
@@ -93,11 +93,11 @@ def main():
             #flat_weights = GetPtWeight_2( dsids, jet_pts, 5)
             flat_weights = GetPtWeight_all_MC( labels, dsids_test,  jet_pts, 5, Pythia_or_All=True)
             kT_selection = config['architecture']['kT_cut']
-
+            print("mi print",dsids_test)
             #dataset = create_train_dataset_fulld_new_Ntrk_pt_weight_file( dataset , all_lund_zs, all_lund_kts, all_lund_drs, parent1, parent2, flat_weights, labels ,N_tracks, jet_pts, jet_ms, kT_selection)
-            dataset = create_train_dataset_fulld_new_Ntrk_pt_weight_file(
+            dataset = create_train_dataset_fulld_new_Ntrk_pt_weight_file_VAL(
                 dataset, all_lund_zs, all_lund_kts, all_lund_drs,
-                parent1, parent2, flat_weights, labels,
+                parent1, parent2, flat_weights, labels, dsids_test[0],
                 N_tracks, jet_pts, jet_ms, kT_selection,
                 primary_Lund_only_one_arr,
                 config_signal[signal]["signal_jet_truth_label"]
