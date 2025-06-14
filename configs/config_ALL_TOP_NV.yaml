@@ -1,0 +1,31 @@
+data:
+  path_to_save: "/data/bcifuentes/MAY_outp/2025_DATA/2025_GRAPHS_TEST/"
+
+
+architecture:
+  kT_cut: -500 ## indeed this is a cut in ln(kT)
+  choose_model: LundNet ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet
+
+  
+retrain:
+  flag: False
+  path_to_ckpt: "/sps/atlas/k/khandoga/TrainGNN/Models/LundNet_ufob_e012_0.12481.pt"
+
+
+data_test: 
+  do_all_MC: 1  # 1->Do all MC ; 0-> Only Phythia
+  path_to_test_file_pythia: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/Pythia*/*test.root"
+  path_to_test_file_HerwigDipole: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/HerwigDipole*/*test.root"
+  path_to_test_file_HerwigAngular: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/HerwigAngular*/*test.root"
+  path_to_test_file_SherpaCluster: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/SherpaCluster*/*test.root"
+  path_to_test_file_SherpaLund: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/SherpaLund*/*test.root"
+  path_to_outdir: "/data/bcifuentes/MAY_outp/2025_SCORES/scores_15MIXQCD_75P8TOP_BS4800_LR0002_E4MoreDataTest_GRAPHS/"
+  weights_file: ""
+  scale_factor: 1
+
+test:
+  path_to_combined_ckpt: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS4800_LR0002/LundNet_R22_15P8QCD_75P8TOP_BS4800_LR0002e015_0.51855.pt"
+  output_name: "LundNet_R22_15P8QCD_75P8TOP_BS4800_LR0002_E4_WG"
+  choose_model: "LundNet"
+  learning_rate: 0.001
+  batch_size: 2000

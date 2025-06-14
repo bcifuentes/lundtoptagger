@@ -1517,8 +1517,46 @@ def train(loader, model, device, optimizer):
         optimizer.step()
     return loss_all / len(loader.dataset)
 
+def train_class_manual(loader, model, device, optimizer1, optimizer2, optimizer3, epoch):
+    print ("dataset size:", len(loader.dataset))
+    model.train()
+    loss_all = 0
+    batch_counter = 0
+    for data in loader:
+        batch_counter += 1
+        if len(data) < 1024:
+            continue
+        data = data.to(device)
 
-def train_clas(loader, model, device, optimizer1, optimizer2, optimizer3, epoch):
+        # Calcular counts para cada jet en el batch
+        counts = torch.bincount(data.batch)
+
+        optimizer1.zero_grad()
+        optimizer2.zero_grad()
+        optimizer3.zero_grad()
+
+        # Pasar counts como argumento extra
+        output = model(data, counts)
+
+        new_y = data.y.view(-1, 1)
+        new_w = data.weights.view(-1, 1)  # asumiendo que weights tiene tamaño compatible
+
+        loss = F.binary_cross_entropy(output, new_y, weight=new_w)
+        loss.backward()
+        loss_all += data.num_graphs * loss.item()
+
+        if epoch < 4:
+            optimizer3.step()
+        elif epoch < 8:
+            optimizer2.step()
+        else:
+            optimizer1.step()
+    
+    torch.cuda.empty_cache()
+    return loss_all / len(loader.dataset)
+
+
+def train_clas(loader, model, device, optimizer1, optimizer2, optimizer3, epoch, lim):
     print ("dataset size:",len(loader.dataset))
     model.train()
     loss_all = 0
@@ -1541,9 +1579,9 @@ def train_clas(loader, model, device, optimizer1, optimizer2, optimizer3, epoch)
         loss.backward()
         loss_all += data.num_graphs * loss.item()
 
-        if epoch < 4:
+        if epoch < lim:
             optimizer3.step()
-        elif epoch < 8:
+        elif epoch < 2*lim:
             optimizer2.step()
         else:
             optimizer1.step()
@@ -1566,6 +1604,23 @@ def get_accuracy(loader, model, device):
     return correct / len(loader.dataset)
 
 @torch.no_grad()
+
+def my_test_manual(loader, model, device):
+    model.eval()
+    loss_all = 0
+    for data in loader:
+        data = data.to(device)
+        counts = torch.bincount(data.batch)  # calcula counts para el batch actual
+        with torch.no_grad():
+            output = model(data, counts)  # pasa counts al modelo
+        new_y = data.y.view(-1, 1)
+        new_w = data.weights.view(-1, 1)
+        loss = F.binary_cross_entropy(output, new_y, weight=new_w)
+        loss_all += data.num_graphs * loss.item()
+    torch.cuda.empty_cache()
+    return loss_all / len(loader.dataset)
+
+
 def my_test(loader, model, device):
     model.eval()
     #print("init my_test()")
@@ -1587,6 +1642,21 @@ def my_test(loader, model, device):
     return loss_all/len(loader.dataset)
 
 @torch.no_grad()
+
+def get_scores_manual(loader, model, device):
+    model.eval()
+    total_output = np.array([[1]])
+    batch_counter = 0
+    for data in loader:
+        batch_counter+=1
+        # print ("Processing batch", batch_counter, "of",len(loader))
+        data = data.to(device)
+        counts = torch.bincount(data.batch)
+        pred = model(data,counts)
+        total_output = np.append(total_output, pred.cpu().detach().numpy(), axis=0)
+
+    return total_output[1:]
+
 def get_scores(loader, model, device):
     model.eval()
     total_output = np.array([[1]])

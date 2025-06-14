@@ -1,22 +1,22 @@
 data:
-  path_to_trainfiles: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_9TOP_18QCD_MIX/*/*train.root"
+  path_to_trainfiles: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_75TOP_15QCD_MIX/*/*train.root"
   #path_to_trainfiles: "/data/ravinascos/Lund_Plane_2025_graphs/Mix_SignalW10/*/*train.root"
   #path_to_trainfiles: "/data/ravinascos/Lund_Plane_2025_graphs/Mix_SignalW10/*/*train.root"
   #path_to_save: "/data/ravinascos/LundNet/2025_graphs/"
-  path_to_save: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS1024_LR0004/"
-  model_name: "LundNet_R22_18MIXQCD_9P8TOP_BS1024_LR0004_E5"
+  path_to_save: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS4800_LR0002/"
+  model_name: "LundNet_R22_15MIXQCD_75P8TOP_BS4800_LR0002"
   #model_name: "LundNet_R22_No_ln_kT_Cut_LRJ_NewNtrk_W_qcd01_W10_primary"
   #kT_cut: -500 ## indeed this is a cut in ln(kT)
 
 architecture:
-  batch_size: 1024
+  batch_size: 4800
   test_size: 0.1
-  n_epochs: 35
-  learning_rate: 0.0004
+  n_epochs: 25
+  learning_rate: 0.0002
   kT_cut: -500 ## indeed this is a cut in ln(kT)
   choose_model: LundNet ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet
   save_every_epoch: True
-
+  
 retrain:
   flag: False
   path_to_ckpt: "/sps/atlas/k/khandoga/TrainGNN/Models/LundNet_ufob_e012_0.12481.pt"
@@ -29,13 +29,13 @@ data_test:
   path_to_test_file_HerwigAngular: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/HerwigAngular*/*test.root"
   path_to_test_file_SherpaCluster: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/SherpaCluster*/*test.root"
   path_to_test_file_SherpaLund: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/SherpaLund*/*test.root"
-  path_to_outdir: "/data/bcifuentes/MAY_outp/2025_SCORES/scores_18MIXQCD_9P8TOP_BS1024_LR0004_E5MoreDataTest/"
+  path_to_outdir: "/data/bcifuentes/MAY_outp/2025_SCORES/scores_15P8QCD_75P8TOP_BS5600_LR0002_E4_TS2_MoreDataTest/"
   weights_file: ""
   scale_factor: 1
 
 test:
-  #path_to_combined_ckpt: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS4800_LR0002/LundNet_R22_15MIXQCD_75P8TOPe019_0.50989.pt"
-  output_name: "LundNet_R22_18MIXQCD_9P8TOP_BS1024_LR0004_E5"
+  path_to_combined_ckpt: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS5600_LR0002_TS2/LundNet_R22_15P8QCD_75P8TOP_BS5600_LR0002_E4_TS2e013_0.52437.pt"
+  output_name: "LundNet_R22_15P8QCD_75P8TOP_BS5600_LR0002_E4_TS2_MoreDataTest"
   choose_model: "LundNet"
   learning_rate: 0.001
   batch_size: 2000

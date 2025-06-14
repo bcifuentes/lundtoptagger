@@ -6,8 +6,8 @@ data:
   kT_cut: -500 ## indeed this is a cut in ln(kT)
 
 test:
-  path_to_combined_ckpt: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS2000_LR0002/LundNet_R22_1P8QCD_5P8TOP_BS2000_LR0002_MANUAL_v2e017_0.53125.pt"
-  output_name: "LundNet_R22_1P8QCD_5P8TOP_BS2000_LR0002_MANUAL_PYTHIA"
+  path_to_combined_ckpt: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS2000_LR0002/LundNet_R22_1P8QCD_5P8TOP_BS2000_LR0002e019_0.53284.pt"
+  output_name: "LundNet_R22_1P8QCD_5P8TOP_BS2000_LR0002_PYTHIA"
   choose_model: "LundNet"
   learning_rate: 0.001
   batch_size: 2000

@@ -1,0 +1,94 @@
+{
+    "15P8QCD_75P8TOP_BS5600_LR0002_E4": {
+        "epoch": 22,
+        "val_loss": 0.51898
+    },
+    "15MIXQCD_75P8TOP_BS4800_LR000005_E4": {
+        "epoch": 25,
+        "val_loss": 0.48568
+    },
+    "15P8QCD_75P8TOP_BS4800_LR000005_E4": {
+        "epoch": 19,
+        "val_loss": 0.56985
+    },
+    "1MIXQCD_5P8TOP_BS4800_LR0002_E4": {
+        "epoch": 18,
+        "val_loss": 0.45772
+    },
+    "18MIXQCD_9P8TOP_BS4800_LR0002_E4": {
+        "epoch": 20,
+        "val_loss": 0.44826
+    },
+    "15MIXQCD_75P8TOP_BS1200_LR0004": {
+        "epoch": 22,
+        "val_loss": 0.45016
+    },
+    "15P8QCD_75P8TOP_BS5600_LR0002_E4_TS2": {
+        "epoch": 13,
+        "val_loss": 0.52437
+    },
+    "15P8QCD_75P8TOP_BS4800_LR0002_E3": {
+        "epoch": 20,
+        "val_loss": 0.52322
+    },
+    "15P8QCD_75P8TOP_BS4800_LR0002_E5": {
+        "epoch": 17,
+        "val_loss": 0.51666
+    },
+    "15P8QCD_75P8TOP_BS4800_LR0002_E4": {
+        "epoch": 15,
+        "val_loss": 0.51855
+    },
+    "15MIXQCD_75P8TOP_BS4800_LR0002_E4": {
+        "epoch": 20,
+        "val_loss": 0.45032
+    },
+    "15MIXQCD_75P8TOP": {
+        "epoch": 19,
+        "val_loss": 0.50989
+    },
+    "1P8QCD_5P8TOP_BS2000_LR0002_MANUAL_v2": {
+        "epoch": 17,
+        "val_loss": 0.53125
+    },
+    "1P8QCD_5P8TOP_BS2000_LR0002_MANUAL": {
+        "epoch": 14,
+        "val_loss": 0.53304
+    },
+    "1P8QCD_5P8TOP_BS2000_LR0002": {
+        "epoch": 21,
+        "val_loss": 0.53268
+    },
+    "15P8QCD_75P8TOP_BS5600_LR000005_E4": {
+        "epoch": 20,
+        "val_loss": 0.57063
+    },
+    "15P8QCD_75P8TOP_BS1024_LR0002_E4": {
+        "epoch": 23,
+        "val_loss": 0.51557
+    },
+    "15MIXQCD_75P8TOP_BS4800_LR0001_E4": {
+        "epoch": 22,
+        "val_loss": 0.45204
+    },
+    "15P8QCD_75P8TOP_BS4800_LR0001_E4": {
+        "epoch": 14,
+        "val_loss": 0.5219
+    },
+    "15P8QCD_75P8TOP_BS4800_LR05_E4": {
+        "epoch": 3,
+        "val_loss": 88.57441
+    },
+    "15P8QCD_75P8TOP_BS4800_LR0004_E4": {
+        "epoch": 22,
+        "val_loss": 0.51998
+    },
+    "15MIXQCD_75P8TOP_BS4800_LR0004_E4": {
+        "epoch": 23,
+        "val_loss": 0.45092
+    },
+    "15P8QCD_75P8TOP_BS4800_LR0002_E4_TS2": {
+        "epoch": 13,
+        "val_loss": 0.52716
+    }
+}
