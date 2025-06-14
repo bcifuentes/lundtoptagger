@@ -26,18 +26,50 @@ hadd -f tree.root user.*root
 
 ## Plotting
 
-In a clean and new terminal, go to the plotting repo and source the setup file. 
-It will get the version of the libraries you want to use from /cvmfs/. 
-Go to plotting.py and check that you are using the root file you just created with hadd after the testing of the model. 
-Plot! 
-```
+To generate the tagger plots, first open a clean terminal and set up the environment:
+
+```bash
+setupATLAS -c centos7
 source setup.sh
-python -b plotting.py 
 ```
 
-## To do list: 
-- [ ] Cut on ln(kt): prepare multiple graphs with different values of ln(kT) cuts 
-- [ ] Make a bkg rej vs ln(kT) plot
-- [ ] Make the LundJetPlane plot with the prediction to see where the modeling uncertainties impact the most
-- [ ] Apply a shift of 5% to mean pT of the constituent, and test on that sample
-- [ ] Apply a shift of 5% to resolution pT of the constituent, and test on that sample
+
+### Main tagger plots: `plottingM4.py`
+
+This script generates the standard tagger plots:
+
+- ROC curves
+- Signal efficiency vs background rejection
+- Background rejection vs jet transverse momentum (pT), comparing the tagger's performance across different Monte Carlo generators
+- Envelope plots for each tagger (e.g. useful for studying kt cut effects)
+
+To run it:
+
+```bash
+python plottingM4.py
+```
+
+The script automatically reads scores from a group of folders organized by taggers and MC generators.
+
+### Comparative studies: `plottingM5.py`
+
+This script is aimed at broader comparative studies. It generates:
+
+- Background rejection vs pT plots where the MC generators are averaged to absorb generator-specific behaviors
+- Envelope plots for each model
+- Validation loss plots (including envelope versions)
+
+Currently, it is configured for hyperparameter optimization studies.
+
+To run it:
+
+```bash
+python plottingM5.py
+```
+
+### Notes
+
+- Make sure the paths to the `.root` score files are correctly set in the script, usually at the top of `plottingM4.py` and `plottingM5.py`.
+- Use the same environment setup (`source setup.sh`) for both merging score files with `hadd` and running these plotting scripts to prevent segmentation faults and ensure proper library loading.
+
+
