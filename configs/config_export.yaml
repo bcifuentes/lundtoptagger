@@ -1,0 +1,19 @@
+data: 
+  #path_to_test_file: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/Pythia*/*test.root"  025_DATA_5TOP_1QCD_MIX
+  #path_to_test_file: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/Pythia_*/*test.root"
+  path_to_test_file: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/Pythia_*/*000001*test.root"
+  path_to_outdir: "./scores_multi/"
+  weights_file: ""
+  scale_factor: 1
+  kT_cut: -500 ## indeed this is a cut in ln(kT)
+
+test:
+  #path_to_combined_ckpt: "/data/ravinascos/For_Jean/Hyperparameters_ckps/T_LundNet_R22_R22_plusCuts_validation_9TOP_18QCD_FIX_STEP2e017_0.03516.pt"
+  #path_to_combined_ckpt: "/data/bcifuentes/JAN_outp/SimpleModel3LundNet_TOP_R22e025_4.40339.pt"
+  path_to_combined_ckpt: "/data/jjhong96/Share/LundNet_R22_FourClass_NoHWW_2dFlat_Ver1_e053_14.46694.pt"
+  #path_to_combined_ckpt: "/home/bcifuentes/SEPT_ONNX/Models8/LundNet_TOP_R22e002_0.90510.pt"
+  path_to_onnx_ckpt: "./lundnet.onnx"
+  output_name: "LundNet_R22"
+  choose_model: "LundNet"
+  learning_rate: 0.001
+  batch_size: 2000
