@@ -50,7 +50,9 @@ def main():
     dsid_count = {}
     
     for graph in dataset:
-        dsid = int(graph.y.item())  
+        dsid = int(graph.y)
+        #print(dsid)
+        #dsid = int(graph.y.item())  
         if dsid in dsid_count:
             dsid_count[dsid] += 1  
         else:
@@ -135,7 +137,7 @@ def main():
     metrics_filename = path_to_save+"losses_"+model_name+datetime.now().strftime("%d%m-%H%M")+".txt"
 
     for epoch in range(n_epochs):
-        train_loss.append(train_clas(train_loader, model, device, optimizer, optimizer2, optimizer3, epoch))
+        train_loss.append(train_clas(train_loader, model, device, optimizer, optimizer2, optimizer3, epoch,4))
         val_loss.append(my_test(val_loader, model, device))
 
         print('Epoch: {:03d}, Train Loss: {:.5f}, Val Loss: {:.5f}'.format(epoch, train_loss[epoch], val_loss[epoch]))

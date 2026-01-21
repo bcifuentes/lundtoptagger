@@ -1,13 +1,13 @@
 data:
-  path_to_trainfiles: "/data/bcifuentes/outp/2025_graphs/graphs_NewDataset_LundNet_R22_1P8QCD_5P8TOP"
-  path_to_save: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS2000_LR0002/"
-  model_name: "LundNet_R22_1P8QCD_5P8TOP_BS2000_LR0002"
+  path_to_trainfiles: "/data/bcifuentes/JUL_outp/2025_GRAPHS/graphs_NewDataset_LundNet_R22_1P8QCD_5P8TOP_PRUEBA"
+  path_to_save: "/data/bcifuentes/JUL_outp/2025_MODELS/PRUEBA/"
+  model_name: "LundNet_R22_1P8QCD_5P8TOP_BS5600_LR0004"
 
 architecture:
-  batch_size: 2000 
+  batch_size: 5600
   test_size: 0.1
-  n_epochs: 30
-  learning_rate: 0.0002
+  n_epochs: 35
+  learning_rate: 0.0004
   choose_model: LundNet ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet
   save_every_epoch: True
 

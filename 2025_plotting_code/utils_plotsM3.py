@@ -332,7 +332,10 @@ dijet_xsweights_dict = {
     411316:1*1,
     801661:1,
     801859:1, # W
-    802017:1 #W Flat mass
+    802017:1, #W Flat mass
+    801471:1,
+    603404:1,
+    801636:1
     #'''
 }
 
@@ -487,16 +490,199 @@ def make_efficiencies_all(cut,taggers, prefix=''):
     # c1.legend(xmin=0.7, xmax=0.9)
     c1.log()
     l.DrawLatex(0.18, 0.89,        "ATLAS")
-    s.DrawLatex(0.18+(0.14), 0.89, " Simulation Preliminary")
-    s.DrawLatex(0.18, 0.84,        "#sqrt{s} = 13 TeV, #it{W} tagging")
+    s.DrawLatex(0.18+(0.14), 0.89, " Work in progress")
+    s.DrawLatex(0.18, 0.84,        "#sqrt{s} = 13 TeV, #it{Higgs} tagging")
     s.DrawLatex(0.18, 0.79,        "anti-#it{k_{t}} #it{R}=1.0 UFO Soft-Drop CS+SK jets")
-    s.DrawLatex(0.18, 0.74, "p_{T} > 200 GeV, |#eta| < 2.0")#  70GeV<mass<90GeV")
+    s.DrawLatex(0.18, 0.74, "p_{T} > 300 GeV, |#eta| < 2.0")#  70GeV<mass<90GeV")
 
     legend.Draw()
     c1.save("{}/{}/fig_02a.png".format(prefix,cut))
     c1.save("{}/{}/fig_02a.pdf".format(prefix,cut))
     c1.save("{}/{}/fig_02a.eps".format(prefix,cut))
     del c1
+def make_roc_otherMC(cut, taggers, prefix=''):
+
+    colours = [
+        ROOT.kMagenta - 4,
+        ROOT.kAzure + 7,
+        ROOT.kTeal,
+        ROOT.kSpring - 2,
+        ROOT.kOrange - 3,
+        ROOT.kPink,
+        ROOT.kSpring + 2
+    ]
+
+    c = ap.canvas(num_pads=1, batch=True)
+    count = 0
+
+    tprs_sig, fprs_sig, auc = taggers["LundNet_class"].get_roc()
+    tprs_sig = np.array(tprs_sig, dtype=np.float64)
+
+    for t in taggers:
+
+        if t == "LundNet_class":
+            label = "Pythia"
+        elif t == "HerwigAngular":
+            label = "HerwigAngular"
+        elif t == "HerwigDipole":
+            label = "HerwigDipole"
+        elif t == "SherpaCluster":
+            label = "SherpaCluster"
+        elif t == "SherpaLund":
+            label = "SherpaLund"
+        else:
+            continue
+
+        # Background del generador t
+        _, fprs_bg, _ = taggers[t].get_roc()
+        fprs_bg = np.array(fprs_bg, dtype=np.float64)
+
+        inv_bkg = 1.0 / fprs_bg
+        inv_bkg[inv_bkg == np.inf] = 1e10
+
+        g = ROOT.TGraph(
+            len(tprs_sig),
+            tprs_sig,
+            inv_bkg
+        )
+
+        c.graph(
+            g,
+            linestyle=1,
+            linewidth=2,
+            linecolor=colours[count],
+            markercolor=colours[count],
+            markerstyle=1,
+            label=label
+        )
+
+        count += 1
+
+    c.xlabel('Signal efficiency (#varepsilon^{rel}_{sig})')
+    c.ylabel('Background rejection (1/#varepsilon^{rel}_{bkg})')
+
+    c.xlim(0.2, 1.0)
+    c.ylim(1, 1e5)
+    c.log()
+
+    c.text([
+        "#sqrt{s} = 13 TeV, top tagging",
+        "#scale[0.85]{anti-k_{t} R=1.0 jets}",
+        "#scale[0.85]{p_{T} > 350 GeV, |#eta| < 2.0}",
+    ], qualifier='Work in progress')
+
+    c.legend(xmin=0.18, xmax=0.55, ymin=0.18, ymax=0.38)
+
+    c.save("{}/{}/roc_otherMC.png".format(prefix, cut))
+    c.save("{}/{}/roc_otherMC.pdf".format(prefix, cut))
+    c.save("{}/{}/roc_otherMC.eps".format(prefix, cut))
+
+def make_rocs_2(TAGGERS,STUDIES, prefix=''):
+    #colours = [ROOT.kViolet + 7, ROOT.kAzure + 7, ROOT.kTeal, ROOT.kSpring - 2, ROOT.kOrange - 3, ROOT.kPink,  ROOT.kPink+3]
+    colours = [ROOT.kMagenta - 4, ROOT.kAzure + 7, ROOT.kTeal, ROOT.kSpring - 2, ROOT.kOrange - 3, ROOT.kPink,  ROOT.kPink+3, ROOT.kSpring +2]
+
+    c1 = ap.canvas(num_pads=1, batch=True)
+    count = 0
+    
+    for taggers,studie in zip(TAGGERS,STUDIES):
+        
+        tprs, fprs, auc = taggers["LundNet_class"].get_roc()
+        ## Fill random guessing
+        if count==0:
+            h = TGraph(len(tprs), np.linspace(0.0001, 1, len(tprs)), np.linspace(0.0001, 1, len(tprs)))
+            c1.graph(h, linestyle=2, linecolor=ROOT.kBlack, option="AL", label="Random")
+
+        h = TGraph(len(tprs), fprs, tprs)
+        c1.graph(h, linestyle=1, linecolor=colours[count], markercolor=colours[count], option="L", label=studie)
+        count+=1
+
+    c1.xlabel('False positive rate')
+    c1.ylabel('True positive rate')
+    c1.xlim(0, 1) ## c1.xlim(0.2, 1)
+    #c1.ylim(0, 1.2)
+
+    c1.text(["#sqrt{s} = 13 TeV, #it{top} tagging",
+            "anti-k_{t} R=1.0 UFO Soft-Drop CS+SK jets",
+            ], qualifier='Simulation Preliminary')
+    c1.legend()
+    c1.save("{}/ROCcurves.png".format(prefix))
+    del c1
+    
+def make_efficiencies_all_2(TAGGERS, STUDIES, prefix=''):
+
+    l = TLatex()
+    l.SetNDC()
+    l.SetTextFont(72)
+    l.SetTextSize(0.042)
+    s = TLatex()
+    s.SetNDC()
+    s.SetTextFont(42)
+    s.SetTextSize(0.04)
+    legend = ROOT.TLegend(0.18, 0.16, 0.65, 0.33)
+    legend.SetNColumns(1)
+    legend.Clear()
+    legend.SetFillStyle(0)
+
+    colours = [ROOT.kAzure + 7, ROOT.TColor.GetColor('#FF8C00'), ROOT.TColor.GetColor('#008026'), ROOT.TColor.GetColor('#24408E'), ROOT.TColor.GetColor('#732982'), ROOT.kRed, ROOT.kPink, ROOT.kPink+3, ROOT.kPink-3, ROOT.kMagenta +7]
+
+    count = 0
+    c1 = ap.canvas(num_pads=1, batch=True)
+
+    mg = TMultiGraph()
+
+    # Inicializar lista para almacenar las diferencias de background rejection
+    differences = []
+
+    for taggers, studie in zip(TAGGERS, STUDIES):
+        tprs, fprs, auc = taggers["LundNet_class"].get_roc()
+        inv = 1 / fprs
+        inv[inv == np.inf] = 1e10
+        label = studie
+        h = TGraph(len(np.array(tprs, dtype=np.float64)), np.array(tprs, dtype=np.float64), np.array(inv, dtype=np.float64))
+        h = c1.graph(h, linestyle=1, linewidth=2, linecolor=colours[count], markercolor=colours[count], markerstyle=1, label=label)
+        mg.Add(h, "AL")
+        legend.AddEntry(h, studie, 'l')
+        
+        signal_eff_0_5 = 0.5
+        signal_eff_0_8 = 0.8
+        
+        idx_0_5 = np.abs(np.array(tprs) - signal_eff_0_5).argmin()
+        idx_0_8 = np.abs(np.array(tprs) - signal_eff_0_8).argmin()
+        
+        bg_rejection_0_5 = inv[idx_0_5]
+        bg_rejection_0_8 = inv[idx_0_8]
+        
+        difference = bg_rejection_0_8 - bg_rejection_0_5
+        differences.append({'Study': studie, 'Signal Efficiency 0.5': signal_eff_0_5, 'BG Rejection at 0.5': bg_rejection_0_5,
+                            'Signal Efficiency 0.8': signal_eff_0_8, 'BG Rejection at 0.8': bg_rejection_0_8, 'Difference': difference})
+        
+        count += 1
+
+    mg.Draw()
+
+    c1.xlabel('Signal efficiency (#varepsilon^{rel}_{sig})')
+    c1.ylabel('Background rejection (1/#varepsilon^{rel}_{bkg})')
+    c1.xlim(0.2,  1)  ## c1.xlim(0.2, 1)
+    c1.ylim(1, 1e5)
+    c1.log()
+    #l.DrawLatex(0.18, 0.89, "ATLAS")
+    #s.DrawLatex(0.18 + (0.14), 0.89, "internal")
+    s.DrawLatex(0.18, 0.89, "#sqrt{s} = 13 TeV, #it{top} tagging")
+    s.DrawLatex(0.18, 0.84, "anti-#it{k_{t}} #it{R}=1.0 UFO Soft-Drop CS+SK jets")
+    s.DrawLatex(0.18, 0.79, "p_{T} > 350 GeV, |#eta| < 2.0 ")#, m#in [75-85] GeV")
+
+    legend.Draw()
+    c1.save("{}/fig_02a.png".format(prefix))
+    c1.save("{}/fig_02a.pdf".format(prefix))
+    c1.save("{}/fig_02a.eps".format(prefix))
+    del c1
+    
+    # Crear una tabla con las diferencias de background rejection
+    df_differences = pd.DataFrame(differences)
+    print(df_differences)
+
+    # Guardar la tabla en formato CSV
+    df_differences.to_csv("{}/background_rejection_differences.csv".format(prefix), index=False)
 
 def make_efficiencies_3var(cut,taggers, prefix=''):
 
@@ -877,11 +1063,11 @@ class tagger_scores():
             self.scores["chris_weight"] = (self.scores["fjet_weight_pt"].values)
 
         #self.scores      = self.scores[  (self.scores["chris_weight"] < 150 ) | (self.scores.EventInfo_mcChannelNumber<370000) ]
-
-        self.scores      = self.scores[ self.scores.fjet_pt > 300 ]
+        
+        self.scores      = self.scores[ self.scores.fjet_pt > 350 ]
         self.scores      = self.scores[ self.scores.fjet_pt < 3000 ]
         self.scores      = self.scores[ self.scores.fjet_m > 40 ]
-        #self.scores      = self.scores[ self.scores.fjet_m < 300 ]
+        self.scores      = self.scores[ self.scores.fjet_m < 300 ]
 
         ########### include only good jets  ##########333
         #self.scores      = self.scores[ self.scores["Good_jets"] > 0.9 ]
@@ -4006,7 +4192,7 @@ def pt_bgrej_otherMC(cut,taggers,weight="chris_weight", prefix='', wp=0.5):
     colours = [ROOT.kMagenta - 4, ROOT.kAzure + 7, ROOT.kTeal, ROOT.kSpring - 2, ROOT.kOrange - 3, ROOT.kPink,  ROOT.kPink+3, ROOT.kSpring +2]
     
     # bins = np.linspace(250, 3250, 14 + 1, endpoint=True)
-    bins = np.linspace(200, 3150, 10+1) # 350_top ## use same binning as Kevin
+    bins = np.linspace(300, 1600, 10+1) # 350_top ## use same binning as Kevin
     kevin_results = np.load('Nominal_metrics.npz')
 
     total_binned_br_50 = kevin_results['total_binned_br_50']
@@ -4047,15 +4233,16 @@ def pt_bgrej_otherMC(cut,taggers,weight="chris_weight", prefix='', wp=0.5):
 
     c.xlabel('Large-#it{R} jet p_{T} [GeV]')
     c.ylabel('Background rejection 1/#epsilon^{rel}_{bkg}')
-    c.text(["#sqrt{s} = 13 TeV, #it{top} tagging",
+    c.text(["#sqrt{s} = 13 TeV, #it{Higgs} tagging",
                  "#scale[0.85]{anti-k_{t} R=1.0 UFO Soft-Drop CS+SK jets}",
                  ("#scale[0.85]{#varepsilon^{rel}_{sig} = 50%}" if wp==0.5 else "#scale[0.85]{#varepsilon^{rel}_{sig} = 80%}"),
+                  "#scale[0.85]{p_{T} > 300 GeV, |#eta| < 2.0}",
                  # "#scale[0.85]{Cut on m_{J} from 3-var tagger}",
             ], qualifier='Work in progress')
     c.log()
     c#.legend(xmin=0.7, xmax=0.9)
     c.legend(xmin=0.69, xmax=0.89, ymin=0.68, ymax=0.85)
-    c.ylim(1, 1e5)
+    c.ylim(1, 1e6)
     # c.ylim(25, 225)
     c.save("{}/{}/pt_bgrej_otherMC.png".format(prefix,cut))
     c.save("{}/{}/pt_bgrej_otherMC.pdf".format(prefix,cut))
@@ -4162,8 +4349,8 @@ def plotAlternative(cut,taggers,weight="chris_weight", prefix='', NNorANN='', wp
     if NNorANN=='ANN':
         # colours = [ROOT.kMagenta - 4, ROOT.kOrange-3, ROOT.kYellow+3, ROOT.kCyan-6, ROOT.kGreen-2]
         colours = [ROOT.kMagenta - 4, ROOT.TColor.GetColor('#FF8C00'), ROOT.TColor.GetColor('#008026'), ROOT.TColor.GetColor('#24408E'), ROOT.TColor.GetColor('#732982')]
-    bins = np.linspace(200, 3150, 10+1)
-    #bins = np.array([200, 300, 400, 500, 600, 750, 950, 1200, 1600, 2000, 2500, 3000], dtype=float)
+    #bins = np.linspace(200, 3150, 10+1)
+    bins = np.array([200, 300, 400, 500, 600, 750, 950, 1200, 1600, 2000, 2500, 3000], dtype=float)
 
     c = ap.canvas(num_pads=2, batch=True)
     p0, p1 = c.pads()
@@ -4242,11 +4429,11 @@ def plotAlternative(cut,taggers,weight="chris_weight", prefix='', NNorANN='', wp
     p1.ylim(0.5, 1.5)
     p1.ylabel('Alternative / Pythia')
 
-    c.text(["#sqrt{s} = 13 TeV, #it{top} tagging",
+    c.text(["#sqrt{s} = 13 TeV, #it{W} tagging",
                  "#scale[0.85]{anti-k_{t} R=1.0 UFO Soft-Drop CS+SK jets}",
                  ("#scale[0.85]{#varepsilon^{rel}_{sig} = 50%}" if wp==0.5 else "#scale[0.85]{#varepsilon^{rel}_{sig} = 80%}"),
-                 ("#scale[0.85]{LundNet^{NN}}" if NNorANN=='NN' else "#scale[0.85]{LundNet^{ANN}}"),
-            ], qualifier='Simulation Preliminary')
+                 ("#scale[0.85]{LundNet^{NN} (ln(k_{t})>0)}" if NNorANN=='NN' else "#scale[0.85]{LundNet^{ANN}}"),
+            ], qualifier='')
     c.log()
     c.legend(xmin=0.7, xmax=0.8)
     c.ylim(3, 2e4)
@@ -4340,7 +4527,7 @@ def plotAlternativeFinal(TAGGERS,STUDIES,tagref,generators,weight="chris_weight"
                  "#scale[0.85]{anti-k_{t} R=1.0 UFO Soft-Drop CS+SK jets}",
                  ("#scale[0.85]{#varepsilon^{rel}_{sig} = 50%}" if wp==0.5 else "#scale[0.85]{#varepsilon^{rel}_{sig} = 80%}"),
                  ("#scale[0.85]{LundNet^{NN}}" if NNorANN=='NN' else "#scale[0.85]{LundNet^{ANN}}"),
-            ], qualifier='Internal')
+            ],qualifier='',ATLAS=False)
     c.log()
     c.legend(xmin=0.7, xmax=0.8)
     c.ylim(3, 2e4)

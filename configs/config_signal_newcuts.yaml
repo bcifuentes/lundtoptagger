@@ -1,22 +1,9 @@
 signal: top  # W or top, flag to choose one of the configurations below
 
-higgs:
-  weights_file: "/data/jmsardain/LJPTagger/FullSplittings/SplitForTopTagger/flat_weights.root" # not necesary!! 
-  pt_hist_file_bkg: "./histos/qcdP8.root" # we should put here all MC samples and if we select all MC or Pythia
-  pt_hist_file_signal: "./histos/higgs.root"
-  signal_jet_truth_label: 11
-  skip_dsids:
-  - 364700  # don't lose time with jets that don't pass pt cut
-  - 364701  # don't lose time with jets that don't pass pt cut
-  - 364702  # don't lose time with jets that don't pass pt cut
-  - 801859  # don't keep W jets
-  - 801661  # don't keep top jets
-
-
 top:
   weights_file: "/data/jmsardain/LJPTagger/FullSplittings/SplitForTopTagger/flat_weights.root" # not necesary!! 
   pt_hist_file_bkg: "./histos/qcdP8.root" # we should put here all MC samples and if we select all MC or Pythia
-  pt_hist_file_signal: "./histos/topBSMP8.root"
+  pt_hist_file_signal: "./histos/topBSMP8_NV.root"
   signal_jet_truth_label: 1
   skip_dsids:
   - 364700  # don't lose time with jets that don't pass pt cut

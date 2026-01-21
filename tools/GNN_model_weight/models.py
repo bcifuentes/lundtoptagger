@@ -99,57 +99,6 @@ class Net(torch.nn.Module):
 #         return F.sigmoid(x)
 
 
-class ManualEdgeConv(torch.nn.Module):
-    def __init__(self, nn_module, aggr='max'):
-        super().__init__()
-        self.nn = nn_module
-        self.aggr = aggr
-
-    def forward(self, x, edge_index):
-        row, col = edge_index
-        x_i = x[row]
-        x_j = x[col]
-    
-        #print(f"[ManualEdgeConv] x shape: {x.shape}")
-        #print(f"[ManualEdgeConv] edge_index shape: {edge_index.shape}")
-        #print(f"[ManualEdgeConv] x_i shape: {x_i.shape}")
-        #print(f"[ManualEdgeConv] x_j shape: {x_j.shape}")
-    
-        edge_feat = torch.cat([x_i, x_j - x_i], dim=1)
-    
-        out = self.nn(edge_feat)
-    
-        #print(f"[ManualEdgeConv] output shape: {out.shape}")
-
-        num_nodes = x.size(0)
-        if self.aggr == 'add':
-            out_aggr = torch.zeros(num_nodes, out.size(1), device=x.device)
-            out_aggr.index_add_(0, row, out)
-
-        elif self.aggr == 'mean':
-            out_aggr = torch.zeros(num_nodes, out.size(1), device=x.device)
-            out_aggr.index_add_(0, row, out)
-            counts = torch.bincount(row, minlength=num_nodes).clamp(min=1).view(-1,1)
-            out_aggr = out_aggr / counts
-
-        elif self.aggr == 'max':
-            out_aggr = torch.full((num_nodes, out.size(1)), float('-inf'), device=x.device)
-            for i in range(out.size(0)):
-                n = row[i].item()
-                out_aggr[n] = torch.maximum(out_aggr[n], out[i])
-            out_aggr[out_aggr == float('-inf')] = 0
-
-        else:
-            raise ValueError(f"Aggregation '{self.aggr}' no soportada")
-
-        return out_aggr
-'''
-def global_mean_pool(x, batch):
-    batch_size = int(batch.max()) + 1
-    out = torch.zeros((batch_size, x.size(1)), device=x.device)
-    out.index_add_(0, batch, x)
-    count = torch.bincount(batch, minlength=batch_size).view(-1, 1).clamp(min=1)
-    return out / count
 '''
 def global_mean_pool_man(x, batch, counts):
 
@@ -263,7 +212,7 @@ class ManualLundNet(torch.nn.Module):
         x = F.dropout(x, p=0.1, training=self.training)
         x = self.lin(x)
         return torch.sigmoid(x)
-
+'''
 
 class LundNet(torch.nn.Module):
     def __init__(self):
@@ -310,7 +259,38 @@ class LundNet(torch.nn.Module):
         #print(x.shape)
         return F.sigmoid(x)
 
+class LundNet_simple(torch.nn.Module):
+    def __init__(self):
+        super(LundNet_simple, self).__init__()
+        self.conv1 = EdgeConv(nn.Sequential(nn.Linear(6, 64), nn.BatchNorm1d(num_features=64), nn.ReLU(),
+                                            nn.Linear(64, 64), nn.BatchNorm1d(num_features=64), nn.ReLU()),aggr='add')
 
+
+        self.seq1 = nn.Sequential(nn.Linear(64, 64),
+                                nn.BatchNorm1d(num_features=64),
+                                nn.ReLU())
+
+        self.seq2 = nn.Sequential(nn.Linear(64, 32),
+                                  nn.ReLU())
+        self.lin = nn.Linear(3, 1)
+
+    def forward(self, data):
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+        #Ntrk = data.Ntrk
+        #Ntrk = torch.unsqueeze(Ntrk, 1)
+        #x = self.conv1(x, edge_index)
+        #x = torch.cat((x), dim=1)
+        #x = self.seq1(x1)
+        #x = global_mean_pool(x, batch)
+        #x = torch.cat( (x, Ntrk) ,dim=1)
+        #x = self.seq2(x)
+        #x = F.dropout(x, p=0.1)
+        x = self.lin(x)
+        x = global_mean_pool(x, batch)
+        #print(x.shape)
+        return F.sigmoid(x)
+
+        
 class LundNet_old(torch.nn.Module):
     def __init__(self):
         super(LundNet_old, self).__init__()

@@ -183,9 +183,10 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file(graphs, z, k, d, edge1, e
     return graphs
 
 
-
+'''
 def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, z, k, d, edge1, edge2, weight, label, Ntracks, jet_pts, jet_ms):
-
+    print(weight)
+    print("mlp Kelly")
     data_under3 = 0
     for i in range(len(z)):
         if len(z[i])<5: 
@@ -243,7 +244,7 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, z, k, d, edg
         
     return graphs
 
-
+'''
 
 def train(loader, model, device, optimizer):
     print ("dataset size:",len(loader.dataset))

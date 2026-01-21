@@ -24,18 +24,18 @@ retrain:
 
 data_test: 
   do_all_MC: 0  # 1->Do all MC ; 0-> Only Phythia
-  path_to_test_file_pythia: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/Pythia*/*test.root"
+  path_to_test_file_pythia: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/Pythia_SignalH/*test.root"
   path_to_test_file_HerwigDipole: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/HerwigDipole*/*test.root"
   path_to_test_file_HerwigAngular: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/HerwigAngular*/*test.root"
   path_to_test_file_SherpaCluster: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/SherpaCluster*/*test.root"
   path_to_test_file_SherpaLund: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/SherpaLund*/*test.root"
-  path_to_outdir: "/home/bcifuentes/SEP_outp/2025_SCORES_exp/LundNet_pruebas_env/"
+  path_to_outdir: "/home/bcifuentes/OCT_outp/2025_SCORES/scores_newhiggs/"
   weights_file: ""
   scale_factor: 1
 
 test:
-  path_to_combined_ckpt: "/data/bcifuentes/OCT_outp/R22_MODELS/higgs/LundNet_TOP_R22_Higgs_teste023_0.01048.pt"
-  output_name: "LundNetScores_R22_higgs"
+  path_to_combined_ckpt: "/data/bcifuentes/OCT_outp/R22_MODELS/Newhiggs/LundNet_TOP_R22_Higgs_teste016_0.13552.pt"
+  output_name: "LundNetScores_R22_dihiggs"
   choose_model: "LundNet"
   learning_rate: 0.0005
   batch_size: 2048

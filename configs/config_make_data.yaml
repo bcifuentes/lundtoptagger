@@ -1,13 +1,13 @@
 data:
   #path_to_trainfiles: "/data/ravinascos/Lund_Plane_2024_graphs/TRAIN_DUMMY_01QCD_05Z/*.root" #TRAIN_DUMMY_fewEvents # TRAIN_DUMMY_01QCD_05Z
-  path_to_trainfiles: '/data/ravinascos/Lund_Plane_2024_graphs/TRAIN_DUMMY_02QCD_1Z/*.root'
+  path_to_trainfiles: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/*/*train.root"
   #path_to_save: "/home/ravinascos/LundNet/Jad_git/lundtoptagger/Models/"
-  path_to_save: "/data/ravinascos/LundNet/2024_graphs/"
-  model_name: "TEST_"
+  path_to_save: "/data/bcifuentes/SEP_outp/R22_GRAPHS/"
+  model_name: "DATA_5TOP_1QCDMIX"
   #"LundNet_R22_TRAIN_01QCD_05Z_Primary_FIX_ExtraNode_kt_.0"
 # LundNet_R22_TRAIN_01QCD_05Z_Primary_ExtraNode_NormalSignalWeights
 
 architecture:
-  test_size: 0.2
-  kT_cut: 0 ## indeed this is a cut in ln(kT)
+  test_size: 0.1
+  kT_cut: -500 ## indeed this is a cut in ln(kT)
   choose_model: LundNet ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet

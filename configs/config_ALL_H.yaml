@@ -1,17 +1,17 @@
 data:
-  path_to_trainfiles: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/Pythia*/*000001*train.root"
-  path_to_save: "/data/bcifuentes/JAN_outp/SimpleModel3"
-  model_name: "LundNet_TOP_R22"
+  path_to_trainfiles: "/data/bcifuentes/SEP_outp/2025_DATA/2025_DATA_5TOP_1QCD_MIX/Pythia*/*train.root"
+  path_to_save: "/data/bcifuentes/OCT_outp/R22_MODELS/Newhiggs/"
+  model_name: "LundNet_TOP_R22_Higgs_test"
   #model_name: "LundNet_R22_No_ln_kT_Cut_LRJ_NewNtrk_W_qcd01_W10_primary"
   #kT_cut: -500 ## indeed this is a cut in ln(kT)
 
 architecture:
-  batch_size: 2000
+  batch_size: 1200
   test_size: 0.1
   n_epochs: 25
   learning_rate: 0.0005
   kT_cut: -500 ## indeed this is a cut in ln(kT)
-  choose_model: Simple ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet
+  choose_model: LundNet ## LundNet, GATNet, GINNet, EdgeGinNet, PNANet
   save_every_epoch: True
 
 retrain:
@@ -21,18 +21,18 @@ retrain:
 
 data_test: 
   do_all_MC: 1  # 1->Do all MC ; 0-> Only Phythia
-  path_to_test_file_pythia: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/Pythia*/*test.root"
+  path_to_test_file_pythia: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/Pythia*/*000001*test.root"
   path_to_test_file_HerwigDipole: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/HerwigDipole*/*test.root"
   path_to_test_file_HerwigAngular: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/HerwigAngular*/*test.root"
   path_to_test_file_SherpaCluster: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/SherpaCluster*/*test.root"
   path_to_test_file_SherpaLund: "/data/bcifuentes/MAY_outp/2025_DATA/2025_DATA_10TOP_2QCD/SherpaLund*/*test.root"
-  path_to_outdir: "/data/bcifuentes/MAY_outp/2025_SCORES/scores_18MIXQCD_9P8TOP_BS1024_LR0004_E5MoreDataTest/"
+  path_to_outdir: "/data/bcifuentes/OCT_outp/2025_SCORES/scores_higgs_test/"
   weights_file: ""
   scale_factor: 1
 
 test:
   #path_to_combined_ckpt: "/data/bcifuentes/MAY_outp/2025_MODELS/2025_MODELS_BS4800_LR0002/LundNet_R22_15MIXQCD_75P8TOPe019_0.50989.pt"
-  output_name: "LundNet_R22_18MIXQCD_9P8TOP_BS1024_LR0004_E5"
+  output_name: "LundNet_R22_dihiggs"
   choose_model: "LundNet"
   learning_rate: 0.001
   batch_size: 2000

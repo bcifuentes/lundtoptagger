@@ -55,147 +55,6 @@ def GetPtWeight( dsid , pt, SF):
             weight_out.append( (flatweights_sig[0][pt_bin])*1 )
     return np.array(weight_out)
 
-def GetPtWeight_R22_v3(dsid_array, pt_array):
-
-    # Archivos con histogramas
-    common_path = "./histos/"
-    #filename_signal = common_path+"TOP_R22.root"
-    filename_signal = common_path+"higgs.root"
-    filename_bkg = common_path+"qcdP8.root" 
-    
-    #filename_signal = common_path + "topBSMP8.root"
-    #filename_bkg = common_path + "qcdP8.root"
-
-    # Abrimos histogramas de pt
-    hist_sig_counts, hist_sig_edges = uproot.open(filename_signal)["pt"].to_numpy()
-    hist_bkg_counts, hist_bkg_edges = uproot.open(filename_bkg)["pt"].to_numpy()
-
-    # Verifica que los edges coincidan (asumimos que sí, o adaptar)
-    assert np.allclose(hist_sig_edges, hist_bkg_edges), "Los bin edges no coinciden entre señal y fondo"
-
-    # Inverse histogramas
-    inv_sig = np.divide(
-        np.sum(hist_sig_counts),
-        hist_sig_counts * len(hist_sig_counts),
-        out=np.zeros_like(hist_sig_counts, dtype=float),
-        where=hist_sig_counts > 0
-    )
-    inv_bkg = np.divide(
-        np.sum(hist_bkg_counts),
-        hist_bkg_counts * len(hist_bkg_counts),
-        out=np.zeros_like(hist_bkg_counts, dtype=float),
-        where=hist_bkg_counts > 0
-    )
-
-    # Escalamiento por proporciones reales
-    total_qcd = np.sum(hist_bkg_counts)
-    total_signal = np.sum(hist_sig_counts)
-    qcd_signal_ratio = total_qcd / total_signal
-
-    sig_bkg_proportion = 5  # asumes 5% signal, 1% QCD en entrenamiento
-    scale_factor = (len(hist_bkg_counts) / len(hist_sig_counts)) / sig_bkg_proportion
-    scale_factor *= qcd_signal_ratio
-
-    # Bin assignment
-    bin_indices = np.digitize(pt_array, hist_sig_edges) - 1
-    bin_indices = np.clip(bin_indices, 0, len(inv_sig) - 1)
-
-    # Clasificación: señal o fondo
-    bkg_dsids = [10]  # ajusta si usas otros valores
-    weight_out = []
-
-    for i in range(len(pt_array)):
-        idx = bin_indices[i]
-        if dsid_array[i] in bkg_dsids:
-            weight_out.append(inv_bkg[idx])
-        else:
-            weight_out.append(inv_sig[idx] * scale_factor)
-
-    return np.array(weight_out)
-
-def GetPtWeight_R22_v4(dsid_array, pt_array):
-
-    # Archivos con histogramas
-    common_path = "./histos/"
-    filename_signal = common_path + "higgs.root"
-    filename_bkg = common_path + "QCD_R22.root" 
-
-    # Abrimos histogramas de pt
-    hist_sig_counts, hist_sig_edges = uproot.open(filename_signal)["pt"].to_numpy()
-    hist_bkg_counts, hist_bkg_edges = uproot.open(filename_bkg)["pt"].to_numpy()
-
-    # Adaptación de binning: rebin fondo a edges de señal
-    hist_bkg_counts_rebin, _ = np.histogram(
-        np.repeat((hist_bkg_edges[:-1] + hist_bkg_edges[1:]) / 2, hist_bkg_counts.astype(int)),
-        bins=hist_sig_edges
-    )
-
-    # Inverse histogramas
-    inv_sig = np.divide(
-        np.sum(hist_sig_counts),
-        hist_sig_counts * len(hist_sig_counts),
-        out=np.zeros_like(hist_sig_counts, dtype=float),
-        where=hist_sig_counts > 0
-    )
-    inv_bkg = np.divide(
-        np.sum(hist_bkg_counts_rebin),
-        hist_bkg_counts_rebin * len(hist_bkg_counts_rebin),
-        out=np.zeros_like(hist_bkg_counts_rebin, dtype=float),
-        where=hist_bkg_counts_rebin > 0
-    )
-
-    # Escalamiento por proporciones reales
-    total_qcd = np.sum(hist_bkg_counts_rebin)
-    total_signal = np.sum(hist_sig_counts)
-    qcd_signal_ratio = total_qcd / total_signal
-
-    sig_bkg_proportion = 5  # asumes 5% signal, 1% QCD en entrenamiento
-    scale_factor = (len(hist_bkg_counts_rebin) / len(hist_sig_counts)) / sig_bkg_proportion
-    scale_factor *= qcd_signal_ratio
-
-    # Bin assignment
-    bin_indices = np.digitize(pt_array, hist_sig_edges) - 1
-    bin_indices = np.clip(bin_indices, 0, len(inv_sig) - 1)
-
-    # Clasificación: señal o fondo
-    bkg_dsids = [10]  # ajusta según tus DSIDs
-    weight_out = []
-
-    for i in range(len(pt_array)):
-        idx = bin_indices[i]
-        if dsid_array[i] in bkg_dsids:
-            weight_out.append(inv_bkg[idx])
-        else:
-            weight_out.append(inv_sig[idx] * scale_factor)
-
-    return np.array(weight_out)
-def train_clas_exp(loader, model, device, optimizer1, epoch, lim):
-    #print ("dataset size:",len(loader.dataset))
-    model.train()
-    loss_all = 0
-    batch_counter = 0
-    for data in loader:
-        batch_counter+=1
-        #print("batch_counter: ",batch_counter, end="\r")
-        if len(data)<990:
-            continue
-        data = data.to(device)
-        optimizer1.zero_grad()
-    
-        output = model(data)
-        new_y = torch.reshape(data.y, (int(list(data.y.shape)[0]),1))
-        new_w = torch.reshape(data.weights, (int(list(data.weights.shape)[0]),1)) ## add weights
-    
-        loss = F.binary_cross_entropy(output, new_y, weight = new_w)
-        loss.backward()
-        loss_all += data.num_graphs * loss.item()
-    
-        optimizer1.step()
-    del data
-    data = []
-    torch.cuda.empty_cache()
-    return loss_all / len(loader.dataset)
-    
 def GetPtWeight_all_MC( dsid , dsid_input, pt, SF, Pythia_or_All=False ):
     ## PT histograms of all qcd and top jets in dataset
     filename1 = config[signal]["pt_hist_file_bkg"]
@@ -204,7 +63,6 @@ def GetPtWeight_all_MC( dsid , dsid_input, pt, SF, Pythia_or_All=False ):
     #flatweights_bg = weights_file1["pt"].to_numpy()
 
     common_path = "./histos/" 
-    filename_Signal_top = common_path+"topBSMP8.root"
     filename_Phythia = common_path+"qcdP8.root" # ./histosqcdP8.root
     filename_Sherpa_L = common_path+"qcdSL.root"
     filename_Sherpa_C = common_path+"qcdSC.root"
@@ -240,6 +98,12 @@ def GetPtWeight_all_MC( dsid , dsid_input, pt, SF, Pythia_or_All=False ):
             weights_file1 = uproot.open(filename1)
             flatweights_bg = weights_file1["pt"].to_numpy()
             print("Sample: Herwig_a")
+        
+        elif dsid_input[0] == 801661:
+            filename1 = filename_Phythia
+            weights_file1 = uproot.open(filename1)
+            flatweights_bg = weights_file1["pt"].to_numpy()
+            print("Sample: Signal top")
         
         else:
             print("WARNING!! You are not using proper Pythia, Sherpa or Herwig sample")
@@ -328,12 +192,12 @@ def to_categorical(y, num_classes=None, dtype='float32'):
 
 
 #def create_train_dataset_fulld_new_Ntrk_pt_weight_file(graphs, z, k, d, edge1, edge2, weight, label, Ntracks, jet_pts, jet_ms, kT_selection):
-def create_train_dataset_fulld_new_Ntrk_pt_weight_file(graphs, z, k, d, edge1, edge2, weight, label, Ntracks, jet_pts, jet_ms, jet_etas, kT_selection, primary_Lund_only_one_arr, signal_jet_truth_label):
+def create_train_dataset_fulld_new_Ntrk_pt_weight_file(graphs, z, k, d, edge1, edge2, weight, label, Ntracks, jet_pts, jet_ms, kT_selection, primary_Lund_only_one_arr, signal_jet_truth_label):
 
     test_bool = 1
     buildID_from_graphs = 0
     Primary_Lund_Plane = 0
-    extra_node = 0
+    extra_node = 1
 
     # loop over jets
     for i in range(len(z)):  
@@ -371,14 +235,7 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file(graphs, z, k, d, edge1, e
             if jet_pts[i] > 3100: continue # not really necessary, in testing jets with pt>3k are not included
             if jet_ms[i] < 40: continue
 
-        if signal_jet_truth_label == 11 : # Top tagging selection for all jets
-            if jet_pts[i] < 350: continue 
-            if jet_pts[i] > 3100: continue # not really necessary, in testing jets with pt>3k are not included
-            #if jet_ms[i] < 40: continue
-                
-        if np.abs(jet_etas[i]) >2:
-            continue
-            
+        
         z_out = ak.to_numpy(z[i])
         k_out = ak.to_numpy(k[i])
         d_out = ak.to_numpy(d[i])
@@ -785,7 +642,7 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file_VAL(graphs, z, k, d, edge
     test_bool = 1
     buildID_from_graphs = 0
     Primary_Lund_Plane = 0
-    extra_node = 0
+    extra_node = 1
     dsid_to_generator = {
         364700: 'Pythia8',  # Pythia8 
         364701: 'Pythia8',
@@ -865,7 +722,6 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file_VAL(graphs, z, k, d, edge
         if label[i] == signal_jet_truth_label:
             label_out = 1
 
-        
         if signal_jet_truth_label == 2 : # W tagging selection for all jets
             if jet_pts[i] < 200: continue 
             if jet_pts[i] > 3100: continue # not really necessary, in testing jets with pt>3k are not included
@@ -1293,18 +1149,18 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file_VAL(graphs, z, k, d, edge
 #def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, graph_small_example, z, k, d, edge1, edge2, weight, label, Ntracks, jet_pts, jet_ms):
 
 #def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, graph_small_example, z, k, d, edge1, edge2, weight, label, Ntracks, jet_pts, jet_ms, kT_selection, primary_Lund_only_one_arr):
-def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, graph_small_example, z, k, d, edge1, edge2, label, Ntracks, jet_pts, jet_ms, kT_selection, mcweights, mcweights_out, Good_jets, signal_jet_truth_label):
+def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, graph_small_example, z, k, d, edge1, edge2, weight, label, Ntracks, jet_pts, jet_ms, kT_selection, mcweights, mcweights_out, Good_jets, signal_jet_truth_label):
 #create_train_dataset_fulld_new_Ntrk_pt_weight_file_test( dataset, graph_small_example , all_lund_zs, all_lund_kts, all_lund_drs, parent1, parent2, flat_weights, labels ,N_tracks,jet_pts, jet_ms, kT_selection, mcweights,mcweights_out, Good_jets)
 
     
     test_bool = 1
     buildID_from_graphs = 0
     Primary_Lund_Plane = 0
-    extra_node = 0
+    extra_node = 1
     print("extra_node condition-", extra_node)
 
     # loop over jets
-    for i in range(len(z)):
+    for i in range(len(z)):  
         #print("len(z)", len(z))
         label_out = label[i]
         mc_weight_event = mcweights[i]
@@ -1618,8 +1474,8 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, graph_small_
                            #edge_index = torch.tensor(edge, dtype=torch.int64).detach(),
                            edge_index = edge.detach() ,
                            #Ntrk=torch.tensor(Ntracks[i], dtype=torch.int).detach(),
-                           Ntrk=torch.tensor(Ntrk, dtype=torch.float).detach(),
-                           #weights= torch.tensor(weight[i], dtype=torch.float).detach(),
+                            Ntrk=torch.tensor(Ntrk, dtype=torch.float).detach(),
+                           weights= torch.tensor(weight[i], dtype=torch.float).detach(),
                            graph_size = torch.tensor(graph_size, dtype=torch.float).detach(),
                            #pt= float(jet_pts[i]) ,#torch.tensor(jet_pts[i] , dtype=torch.float).detach(),
                            mass= float(jet_ms[i]) ,#torch.tensor(jet_ms[i], dtype=torch.float).detach(),
@@ -1631,186 +1487,7 @@ def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test(graphs, graph_small_
     #print(graphs)
     return graphs
 
-def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test_v3(graphs, graph_small_example, z, k, d, edge1, edge2, label, Ntracks, jet_pts, jet_ms, kT_selection, mcweights, mcweights_out, Good_jets, signal_jet_truth_label):
-    # loop over jets
-    for i in range(len(z)):
-        label_out = label[i]
-        mc_weight_event = mcweights[i]
 
-        # skip jets with less than 3 splittings
-        if len(z[i]) < 3:
-            graphs.append(graph_small_example)
-            Good_jets.append(0)
-            mcweights_out.append(mc_weight_event)
-            label_out = 6
-            continue
-
-        # skip jets which are not signal (1 for top and 2 for W) or background (10)
-        if (label[i] != signal_jet_truth_label) and (label[i] != 10):
-            label_out = 6
-            graphs.append(graph_small_example)
-            Good_jets.append(0)
-            mcweights_out.append(mc_weight_event)
-            continue
-
-        # label signal as 1 and background as 0
-        label_out = label[i]  # label_np
-        if label[i] == 10:
-            label_out = 0
-        if label[i] == signal_jet_truth_label:
-            label_out = 1
-
-        # Prepare data
-        z_out = ak.to_numpy(z[i])
-        k_out = ak.to_numpy(k[i])
-        d_out = ak.to_numpy(d[i])
-
-        z_out += 1e-4
-        k_out += 1e-4
-        d_out += 1e-4
-
-        z_out = np.log(1 / z_out)
-        k_out = np.log(k_out)
-        d_out = np.log(1 / d_out)
-
-        # Recover parentID1 and parentID2
-        parentID1 = ak.to_numpy(edge2[i])  # edge2
-        parentID2 = ak.to_numpy(edge1[i])  # edge1
-
-        index_count = []
-        selected_nodes = []
-        index_count_out = []
-
-        # Iterate over z, k, d (no more cuts or primary Lund plane logic)
-        for j in range(len(z[i])):
-            index_count.append(j)
-            if parentID1[j] != -1:
-                selected_nodes.append(parentID1[j])
-            if parentID2[j] != -1:
-                selected_nodes.append(parentID2[j])
-
-        # Normalize
-        mean_z, std_z = 2.0568479032747313, 1.4450598054504056
-        mean_dr, std_dr = 3.8597358364389427, 2.2748462855901073
-        mean_kt, std_kt = -2.379904791478249, 2.940813577366582
-        mean_ntrks, std_ntrks = 57.588158609500134, 23.900100132781983
-
-        z_out = (z_out - mean_z) / std_z
-        k_out = (k_out - mean_kt) / std_kt
-        d_out = (d_out - mean_dr) / std_dr
-        Ntrk = (Ntracks[i] - mean_ntrks) / std_ntrks
-
-        z_out = z_out.astype(float)
-        k_out = k_out.astype(float)
-        d_out = d_out.astype(float)
-        Ntrk = Ntrk.astype(float)
-
-        edge_ID1 = np.concatenate((index_count_out, selected_nodes))
-        edge_ID2 = np.concatenate((selected_nodes, index_count_out))
-        edge = torch.tensor(np.array([edge_ID1, edge_ID2]), dtype=torch.int64)
-
-        # Prepare the vector (d_out, z_out, k_out)
-        vec = np.array([d_out, z_out, k_out]).T
-        vec = torch.tensor(vec, dtype=torch.float).detach()
-
-        graph_size = 1
-        if len(k_out) == 1:
-            edge = torch.tensor([[], []], dtype=torch.int64)
-            vec = torch.unsqueeze(vec, dim=0)
-            graph_size = 0
-
-        if len(edge_ID1) < 1:
-            graphs.append(graph_small_example)
-            Good_jets.append(2)
-            mcweights_out.append(mc_weight_event)
-            continue
-
-        # Add the graph to the list
-        graphs.append(Data(
-            x=vec.detach(),
-            edge_index=edge.detach(),
-            Ntrk=torch.tensor(Ntrk, dtype=torch.float).detach(),
-            #weights=torch.tensor(weight[i], dtype=torch.float).detach(),
-            graph_size=torch.tensor(graph_size, dtype=torch.float).detach(),
-            mass=float(jet_ms[i]),
-            y=float(label_out)
-        ))
-
-        Good_jets.append(1)
-        mcweights_out.append(mc_weight_event)
-
-    return graphs
-
-
-def create_train_dataset_fulld_new_Ntrk_pt_weight_file_test_v2(graphs, z, k, d, edge1, edge2, label, Ntracks, jet_pts, jet_ms):
-
-    for i in range(len(z)):
-
-        z_out = ak.to_numpy(z[i])
-        k_out = ak.to_numpy(k[i])
-        d_out = ak.to_numpy(d[i])
-        
-        z_out += 1e-4
-        k_out += 1e-4
-        d_out += 1e-4
-
-        '''
-        z[i] += 1e-7 # 1e-5
-        k[i] += 1e-7 # 1e-5
-        d[i] += 1e-7 # 1e-5
-
-        z[i] = np.log(1/z[i])
-        k[i] = np.log(k[i])
-        d[i] = np.log(1/d[i])
-        '''
-
-        # values used for W tagging
-        #mean_z, std_z = 2.523076295852661, 5.264721870422363
-        #mean_dr, std_dr = 11.381295204162598, 13.63073444366455
-        #mean_kt, std_kt = -10.042571067810059, 15.398056030273438
-        #mean_ntrks, std_ntrks = 33.35614197897151, 12.064001858459823
-
-        # values used for top tagging
-        mean_z, std_z = 2.1212295107646684, 2.0132512522977346
-        mean_dr, std_dr = 6.872297191581289, 6.109722726160649
-        mean_kt, std_kt = -5.367505330860997, 7.172331060648966
-        mean_ntrks, std_ntrks = 35.80012907092822, 11.740907468153635
-
-        z_out = (z_out - mean_z) / std_z
-        k_out = (k_out - mean_kt) / std_kt
-        d_out = (d_out - mean_dr) / std_dr
-        Ntrk = (Ntracks[i] - mean_ntrks) / std_ntrks
-
-
-        if (len(edge1[i])== 0) or (len(edge2[i])== 0):
-            continue
-        else:
-            edge = torch.tensor(np.array([edge1[i], edge2[i]]) , dtype=torch.long)
-
-        vec = []
-        vec.append(np.array([d_out, z_out, k_out]).T)
-        vec = np.array(vec)
-        vec = np.squeeze(vec)
-        vec=torch.tensor(vec, dtype=torch.float).detach()
-        graph_size = 1
-        graphs.append(Data(x= vec.detach() ,
-                           #edge_index = torch.tensor(edge, dtype=torch.int64).detach(),
-                           edge_index = edge.detach() ,
-                           #Ntrk=torch.tensor(Ntracks[i], dtype=torch.int).detach(),
-                           Ntrk=torch.tensor(Ntrk, dtype=torch.float).detach(),
-                           graph_size = torch.tensor(graph_size, dtype=torch.float).detach(),
-                           #pt= float(jet_pts[i]) ,#torch.tensor(jet_pts[i] , dtype=torch.float).detach(),
-                           mass= float(jet_ms[i]) ,#torch.tensor(jet_ms[i], dtype=torch.float).detach(),
-                           y= float(label[i]) ))#torch.tensor(label_out, dtype=torch.float).detach() ))
-        '''
-        graphs.append(Data(x=torch.tensor(vec, dtype=torch.float).detach(),
-                           edge_index = torch.tensor(edge).detach(),
-                           Ntrk=torch.tensor(Ntrk, dtype=torch.float).detach(),
-                           pt=torch.tensor(jet_pts[i], dtype=torch.float).detach(),
-                           mass=torch.tensor(jet_ms[i], dtype=torch.float).detach(),
-                           y=torch.tensor(label[i], dtype=torch.float).detach() ))
-        '''
-    return graphs
 
 def train(loader, model, device, optimizer):
     print ("dataset size:",len(loader.dataset))

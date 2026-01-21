@@ -14,7 +14,13 @@ warnings.filterwarnings('ignore')
 import os
 import gc
 
-path="/home/bcifuentes/MAY_outp/2025_SCORES/"
+path="/home/bcifuentes/SEP_outp/2025_SCORES_exp/"
+#path="/home/bcifuentes/JUL_ONNX/"
+#path="/home/bcifuentes/MAY_outp/2025_SCORES/"
+path="/home/bcifuentes/OCT_outp/2025_SCORES/"
+#path="/home/bcifuentes/SEPT_ONNX/export/FINALSC/"
+path="/home/bcifuentes/outp/2025_scores_1qcd_5s/HADEADOS/"
+#path="/home/bcifuentes/outp/2025_scores_1qcd_10w/"
 Do_primary = False
 
 for carpeta in os.listdir(path):
@@ -46,14 +52,16 @@ for carpeta in os.listdir(path):
     tagger_files_Mix = {}
     
     other_MC_tagger_files = {}
-    if "Hadd"  in taggerpath:  
-        
+    #if "SC1"  in taggerpath:  
+    if taggerpath=="pythiaTopScores":
         outdir='./outp_'+taggerpath
 
         CUTS=["None"]
             
         if not Do_primary:
+            #tagger_filesC1["LundNet_class"]    = path+ taggerpath+ "/LundNetScores.root"
             tagger_filesC1["LundNet_class"]    = path+ taggerpath+ "/Pythia.root"
+            #tagger_filesC1["LundNet_class"]    = path+ taggerpath+ "/LundNet_R22.root"
             tagger_filesC1["SherpaCluster"]      = path+ taggerpath+ "/SherpaCluster.root"
             tagger_filesC1["SherpaLund"]         =  path+ taggerpath+ "/SherpaLund.root"
             tagger_filesC1["HerwigDipole"]       = path+ taggerpath+ "/HerwigDipole.root"
@@ -113,12 +121,14 @@ for carpeta in os.listdir(path):
     if not Do_primary:     
         
         for taggers,cut in zip(TAGGERS,CUTS):
-            make_rocs(cut,taggers,prefix=outdir)
+            #make_rocs(cut,taggers,prefix=outdir)
             make_efficiencies_all(cut,taggers, prefix=outdir)
-            mass_sculpting(cut,taggers, weight="fjet_weight_pt", prefix=outdir, wp=working_point)  ## fixed
+            make_roc_otherMC(cut,taggers, prefix=outdir)
+            #mass_sculpting(cut,taggers, weight="fjet_weight_pt", prefix=outdir, wp=working_point)
+            #make_efficiencies_all_2(taggers,[taggers[t].name for t in taggers], prefix=outdir)
             pt_bgrej_otherMC(cut,taggers,weight="fjet_weight_pt", prefix=outdir, wp=working_point)    
-            plotAlternative(cut,taggers, weight="fjet_weight_pt", prefix=outdir, NNorANN='NN', wp=working_point)
-            make_efficiencies_3var(cut,taggers, prefix=outdir)
+            #plotAlternative(cut,taggers, weight="fjet_weight_pt", prefix=outdir, NNorANN='NN', wp=working_point)
+            #make_efficiencies_3var(cut,taggers, prefix=outdir)
 
     else:
         pass
